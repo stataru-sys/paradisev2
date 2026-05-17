@@ -16,6 +16,7 @@ mail_button_path = NodePath("Monitor/Layout/IconsTop/MailSlot/Btn")
 shop_button_path = NodePath("Monitor/Layout/IconsBottom/ShopSlot/Btn")
 casino_button_path = NodePath("Monitor/Layout/IconsBottom/CasinoSlot/Btn")
 agents_button_path = NodePath("Monitor/Layout/IconsBottom/AgentsSlot/Btn")
+hint_path = NodePath("Monitor/Layout/Hint")
 
 [node name="Monitor" type="ColorRect" parent="."]
 layout_mode = 0

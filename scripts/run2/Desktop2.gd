@@ -13,6 +13,7 @@ const LOCKED_TOOLTIP: String = "Откроется позже. Тебе пока
 @export var shop_button_path: NodePath
 @export var casino_button_path: NodePath
 @export var agents_button_path: NodePath
+@export var hint_path: NodePath
 
 @onready var _run: Node = get_node("/root/RunService")
 
@@ -29,6 +30,11 @@ func _refresh_lock_visuals() -> void:
 	_update_slot_modulate(shop_button_path, "shop")
 	_update_slot_modulate(casino_button_path, "casino")
 	_update_slot_modulate(agents_button_path, "agents")
+	var all_unlocked: bool = _run.has_unlock("shop") and _run.has_unlock("casino") and _run.has_unlock("agents")
+	if hint_path != NodePath(""):
+		var hint: Label = get_node_or_null(hint_path) as Label
+		if hint != null:
+			hint.visible = not all_unlocked
 
 func _update_slot_modulate(btn_path: NodePath, program_id: String) -> void:
 	var btn: Button = get_node(btn_path) as Button

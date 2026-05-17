@@ -39,8 +39,25 @@ const DAY1_GOALS: Array[Dictionary] = [
 ]
 var _goals_state: Dictionary = {}
 
+# Буфер «интересных» событий за день — для funniest_event в DaySummary.
+const INTERESTING_PREFIXES: Array[String] = [
+	"Казино:",
+	"Стажёр-GPT:",
+	"Людмила",
+	"Ответчик-3000",
+	"Мини-делегатор:",
+]
+var _day_events: Array[String] = []
+
 func _ready() -> void:
+	GameEvents.event_log_added.connect(_on_event_log_added)
 	reset()
+
+func _on_event_log_added(message: String) -> void:
+	for prefix: String in INTERESTING_PREFIXES:
+		if message.begins_with(prefix):
+			_day_events.append(message)
+			return
 
 func reset() -> void:
 	current_day = 1
@@ -58,6 +75,7 @@ func reset() -> void:
 	active_agents.clear()
 	unlocks.clear()
 	_goals_state.clear()
+	_day_events.clear()
 	for g: Dictionary in DAY1_GOALS:
 		_goals_state[g["id"]] = false
 	GameEvents.day_changed.emit(current_day)
@@ -124,6 +142,9 @@ func _mark_goal(goal_id: String) -> void:
 
 func _finish_day() -> void:
 	_mark_goal("survive")
+	var funniest: String = ""
+	if _day_events.size() > 0:
+		funniest = _day_events[randi() % _day_events.size()]
 	var summary: Dictionary = {
 		"day": current_day,
 		"money_earned": money_earned_today,
@@ -132,6 +153,11 @@ func _finish_day() -> void:
 		"matches": matches_today,
 		"goals": get_goals_view(),
 		"verdict": _build_verdict(),
+		"purchased_upgrades": purchased_upgrades.duplicate(),
+		"active_agents": active_agents.duplicate(),
+		"casino_won": casino_won_today,
+		"casino_lost": casino_lost_today,
+		"funniest_event": funniest,
 	}
 	GameEvents.day_finished.emit(summary)
 
@@ -145,6 +171,7 @@ func next_day() -> void:
 	casino_won_today = 0
 	casino_lost_today = 0
 	matches_today = 0
+	_day_events.clear()
 	for k: String in _goals_state.keys():
 		_goals_state[k] = false
 	GameEvents.day_changed.emit(current_day)
@@ -216,6 +243,15 @@ func has_unlock(program_id: String) -> bool:
 	return unlocks.has(program_id)
 
 func _build_verdict() -> String:
+	if current_day >= 2:
+		if active_agents.size() >= 2:
+			return "Делегировал даже жизнь. ИИ справился. Ты — не очень."
+		if casino_won_today + casino_lost_today > 0:
+			return "Сегодня казино было ближе чем партнёр."
+		if purchased_upgrades.size() >= 3:
+			return "Капитализм работает. На тебе."
+		if money_earned_today == 0 and matches_today == 0:
+			return "Просто ещё один день. Это страшнее всего."
 	if money_earned_today >= 50:
 		return "Подозрительно продуктивно. Тревожно."
 	if money_earned_today >= 30:

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://drun2cjbbc2030"]
 
 [ext_resource type="Script" uid="uid://byl6o8ob12is3" path="res://scripts/run2/Run2.gd" id="1_qfbim"]
+[ext_resource type="Script" uid="uid://b2o6uqwov3bpc" path="res://scripts/ui/EventLog.gd" id="2_evlog"]
 
 [node name="Run2" type="Control"]
 layout_mode = 3
@@ -424,3 +425,37 @@ text = "Цели дня"
 
 [node name="GoalsBox" type="VBoxContainer" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout"]
 layout_mode = 2
+
+[node name="EventLog" type="PanelContainer" parent="."]
+modulate = Color(1, 1, 1, 0.92)
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.62
+anchor_right = 0.34
+anchor_bottom = 0.97
+offset_left = 12.0
+offset_top = 0.0
+offset_right = -12.0
+offset_bottom = -12.0
+mouse_filter = 2
+script = ExtResource("2_evlog")
+lines_box_path = NodePath("Margin/Layout/LinesBox")
+
+[node name="Margin" type="MarginContainer" parent="EventLog"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Layout" type="VBoxContainer" parent="EventLog/Margin"]
+layout_mode = 2
+
+[node name="Header" type="Label" parent="EventLog/Margin/Layout"]
+modulate = Color(0.95, 0.95, 0.6, 1)
+layout_mode = 2
+text = "Лента событий"
+
+[node name="LinesBox" type="VBoxContainer" parent="EventLog/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
