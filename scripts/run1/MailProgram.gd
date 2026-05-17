@@ -1,5 +1,6 @@
 extends Control
 ## Мини-игра «Почта» — переписки с матчами, 3 случайных ответа, шкала симпатии.
+## Берёт matches/sympathies из RunService. Ответ тратит 1 энергию.
 
 const REPLY_POOL: Array[String] = [
 	"Я вообще-то занят, но красиво страдаю",
@@ -39,7 +40,7 @@ const FAIL_TEXT: String = "Тебя забанили. Алгоритм всё в
 @export var reply_buttons_box_path: NodePath
 @export var outcome_label_path: NodePath
 
-var _state: Run1State
+@onready var _run: Node = get_node("/root/RunService")
 var _current_id: String = ""
 
 @onready var _back_button: Button = get_node(back_button_path) as Button
@@ -52,10 +53,8 @@ var _current_id: String = ""
 @onready var _reply_buttons_box: HBoxContainer = get_node(reply_buttons_box_path) as HBoxContainer
 @onready var _outcome_label: Label = get_node(outcome_label_path) as Label
 
-func attach_state(state: Run1State) -> void:
-	_state = state
-	if is_node_ready():
-		_refresh_matches_list()
+func attach_state(_state) -> void:
+	pass
 
 func _ready() -> void:
 	_back_button.pressed.connect(func() -> void: GameEvents.program_closed.emit())
@@ -65,13 +64,13 @@ func _ready() -> void:
 func _refresh_matches_list() -> void:
 	for c: Node in _matches_box.get_children():
 		c.queue_free()
-	var has_matches: bool = _state != null and _state.matches.size() > 0
+	var has_matches: bool = _run.matches.size() > 0
 	_empty_label.visible = not has_matches
 	_body.visible = has_matches
 	if not has_matches:
 		_empty_label.text = "Пока никто не пишет. Даже алгоритмы заняты."
 		return
-	for m: Dictionary in _state.matches:
+	for m: Dictionary in _run.matches:
 		var btn: Button = Button.new()
 		btn.text = String(m["name"])
 		btn.custom_minimum_size = Vector2(180, 40)
@@ -79,17 +78,17 @@ func _refresh_matches_list() -> void:
 		btn.pressed.connect(func() -> void: _open_chat(profile_id))
 		_matches_box.add_child(btn)
 	if _current_id.is_empty():
-		_open_chat(String(_state.matches[0]["id"]))
+		_open_chat(String(_run.matches[0]["id"]))
 
 func _open_chat(profile_id: String) -> void:
 	_current_id = profile_id
 	var name_for: String = profile_id
-	for m: Dictionary in _state.matches:
+	for m: Dictionary in _run.matches:
 		if String(m["id"]) == profile_id:
 			name_for = String(m["name"])
 			break
 	_dialog_name.text = name_for
-	_sympathy_bar.value = _state.get_sympathy(profile_id) * 100.0
+	_sympathy_bar.value = float(_run.sympathies.get(profile_id, 0.5)) * 100.0
 	_outcome_label.visible = false
 	for c: Node in _dialog_box.get_children():
 		c.queue_free()
@@ -98,6 +97,8 @@ func _open_chat(profile_id: String) -> void:
 func _roll_reply_buttons() -> void:
 	for c: Node in _reply_buttons_box.get_children():
 		c.queue_free()
+	if int(_run.energy) <= 0:
+		return
 	var pool: Array[String] = REPLY_POOL.duplicate()
 	pool.shuffle()
 	for i: int in range(min(3, pool.size())):
@@ -111,19 +112,24 @@ func _roll_reply_buttons() -> void:
 		_reply_buttons_box.add_child(btn)
 
 func _on_reply_picked(phrase: String) -> void:
+	if int(_run.energy) <= 0:
+		return
 	_append_line("Ты", phrase)
 	var positive: bool = randf() < 0.5
-	var sympathy: float = _state.get_sympathy(_current_id)
+	var sympathy: float = float(_run.sympathies.get(_current_id, 0.5))
 	sympathy += SYMPATHY_STEP if positive else -SYMPATHY_STEP
-	_state.set_sympathy(_current_id, sympathy)
+	sympathy = clampf(sympathy, 0.0, 1.0)
+	_run.sympathies[_current_id] = sympathy
+	GameEvents.sympathy_changed.emit(_current_id, sympathy)
 	var reaction: String = _pick_reaction(positive)
 	_append_line(_dialog_name.text, reaction)
-	_sympathy_bar.value = _state.get_sympathy(_current_id) * 100.0
-	GameEvents.sympathy_changed.emit(_current_id, _state.get_sympathy(_current_id))
-	if _state.get_sympathy(_current_id) >= 1.0:
+	_sympathy_bar.value = sympathy * 100.0
+	_run.register_reply_sent()
+	_run.spend_energy(1)
+	if sympathy >= 1.0:
 		_outcome_label.text = SUCCESS_TEXT
 		_outcome_label.visible = true
-	elif _state.get_sympathy(_current_id) <= 0.0:
+	elif sympathy <= 0.0:
 		_outcome_label.text = FAIL_TEXT
 		_outcome_label.visible = true
 	else:

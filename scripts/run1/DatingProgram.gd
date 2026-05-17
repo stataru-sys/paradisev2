@@ -1,6 +1,6 @@
 extends Control
-## Мини-игра «Дейтинг» — свайпы Диз/Лайк, при совпадении лайк+лайк создаётся матч
-## и добавляется в Run1State.matches. После 5 свайпов вылезает «Пора работать».
+## Мини-игра «Дейтинг» — свайпы Диз/Лайк, при совпадении лайк+лайк создаётся матч.
+## Через RunService.matches доступен из Mail. Свайп тратит 1 энергию.
 
 const PROFILES: Array[Dictionary] = [
 	{"id": "anya", "name": "Аня, 24", "bio": "Промпт-инженер. Ищу того, кто понимает, что reset_history() — это про чувства.", "match_chance": 0.6},
@@ -21,7 +21,7 @@ const WORK_HINT_AFTER_SWIPES: int = 5
 @export var match_toast_path: NodePath
 @export var swipe_counter_path: NodePath
 
-var _state: Run1State
+@onready var _run: Node = get_node("/root/RunService")
 var _index: int = 0
 var _swipes: int = 0
 
@@ -34,8 +34,8 @@ var _swipes: int = 0
 @onready var _match_toast: Label = get_node(match_toast_path) as Label
 @onready var _swipe_counter: Label = get_node(swipe_counter_path) as Label
 
-func attach_state(state: Run1State) -> void:
-	_state = state
+func attach_state(_state) -> void:
+	pass
 
 func _ready() -> void:
 	_work_hint.visible = false
@@ -52,6 +52,9 @@ func _show_current() -> void:
 		_like_button.disabled = true
 		_dislike_button.disabled = true
 		return
+	if int(_run.energy) <= 0:
+		_like_button.disabled = true
+		_dislike_button.disabled = true
 	var p: Dictionary = PROFILES[_index]
 	_name_label.text = String(p["name"])
 	_bio_label.text = String(p["bio"])
@@ -60,11 +63,12 @@ func _show_current() -> void:
 		_work_hint.visible = true
 
 func _on_like() -> void:
+	if int(_run.energy) <= 0:
+		return
 	var p: Dictionary = PROFILES[_index]
 	var roll: float = randf()
 	if roll < float(p["match_chance"]):
-		if _state != null:
-			_state.add_match(p)
+		_run.register_match_added(p)
 		GameEvents.dating_match_added.emit(String(p["id"]))
 		_match_toast.text = "Матч с %s!" % String(p["name"])
 		_match_toast.visible = true
@@ -73,9 +77,12 @@ func _on_like() -> void:
 	_advance()
 
 func _on_dislike() -> void:
+	if int(_run.energy) <= 0:
+		return
 	_advance()
 
 func _advance() -> void:
 	_index += 1
 	_swipes += 1
+	_run.spend_energy(1)
 	_show_current()

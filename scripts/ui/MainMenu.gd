@@ -12,4 +12,4 @@ func _ready() -> void:
 		btn.pressed.connect(_on_start_pressed)
 
 func _on_start_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/Run1.tscn")
+	get_tree().change_scene_to_file("res://scenes/MainScene.tscn")

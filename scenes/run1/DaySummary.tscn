@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://bu85633gkic3n"]
+
+[ext_resource type="Script" uid="uid://8hok72jxbjaq" path="res://scripts/run1/DaySummary.gd" id="1_slrui"]
+
+[node name="DaySummary" type="Control" unique_id=997529028]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_slrui")
+title_path = NodePath("Panel/Margin/Layout/Title")
+stats_box_path = NodePath("Panel/Margin/Layout/StatsBox")
+goals_box_path = NodePath("Panel/Margin/Layout/GoalsBox")
+verdict_path = NodePath("Panel/Margin/Layout/Verdict")
+next_button_path = NodePath("Panel/Margin/Layout/NextBtn")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=1815931431]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1987829410]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -220.0
+offset_right = 260.0
+offset_bottom = 220.0
+
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=1736854068]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="Layout" type="VBoxContainer" parent="Panel/Margin" unique_id=1448904699]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/Margin/Layout" unique_id=640080271]
+modulate = Color(0.95, 0.95, 0.6, 1)
+layout_mode = 2
+text = "День N закрыт"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="Panel/Margin/Layout" unique_id=2104837547]
+layout_mode = 2
+
+[node name="StatsHeader" type="Label" parent="Panel/Margin/Layout" unique_id=969211228]
+layout_mode = 2
+text = "Итог:"
+
+[node name="StatsBox" type="VBoxContainer" parent="Panel/Margin/Layout" unique_id=592037549]
+layout_mode = 2
+
+[node name="Sep2" type="HSeparator" parent="Panel/Margin/Layout" unique_id=1452299371]
+layout_mode = 2
+
+[node name="GoalsHeader" type="Label" parent="Panel/Margin/Layout" unique_id=378155691]
+layout_mode = 2
+text = "Цели:"
+
+[node name="GoalsBox" type="VBoxContainer" parent="Panel/Margin/Layout" unique_id=668936938]
+layout_mode = 2
+
+[node name="Sep3" type="HSeparator" parent="Panel/Margin/Layout" unique_id=1847518393]
+layout_mode = 2
+
+[node name="Verdict" type="Label" parent="Panel/Margin/Layout" unique_id=1715953714]
+modulate = Color(0.7, 0.85, 1, 1)
+layout_mode = 2
+text = "..."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="NextBtn" type="Button" parent="Panel/Margin/Layout" unique_id=309756924]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Начать следующий день"

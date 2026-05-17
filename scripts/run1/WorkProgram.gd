@@ -31,6 +31,7 @@ var _words_remaining: int = 0
 @onready var _finish_panel: Control = get_node(finish_panel_path) as Control
 @onready var _finish_button: Button = get_node(finish_button_path) as Button
 @onready var _economy: Node = get_node("/root/Economy")
+@onready var _run: Node = get_node("/root/RunService")
 
 func attach_state(_state: Run1State) -> void:
 	pass
@@ -116,9 +117,11 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 		_category_counters[slot.category_name] = counter
 		slot.label.text = "%s %d/%d" % [slot.category_name, counter, _category_targets[slot.category_name]]
 		_words_remaining -= 1
+		_run.register_work_correct()
 		if counter == _category_targets[slot.category_name]:
 			_economy.add(CATEGORY_FULL_BONUS)
 			_earned_today += CATEGORY_FULL_BONUS
+			_run.register_money_earned(CATEGORY_FULL_BONUS)
 		_update_earned_label()
 		if _words_remaining == 0:
 			_finish_panel.visible = true
@@ -126,7 +129,9 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 	else:
 		_economy.add(-MISTAKE_PENALTY)
 		_earned_today -= MISTAKE_PENALTY
+		_run.register_work_error()
 		_update_earned_label()
+	_run.spend_energy(1)
 
 func _update_earned_label() -> void:
 	_earned_label.text = "Заработано за день: %d$" % _earned_today

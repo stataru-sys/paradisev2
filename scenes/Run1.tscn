@@ -10,12 +10,15 @@ anchor_bottom = 1.0
 script = ExtResource("1_qfbim")
 program_host_path = NodePath("Layout/Computer/Monitor/MonitorScreen")
 earned_label_path = NodePath("Layout/NavBar/Row/EarnedLabel")
+day_label_path = NodePath("Layout/NavBar/Row/DayLabel")
+energy_label_path = NodePath("Layout/NavBar/Row/EnergyLabel")
 start_overlay_path = NodePath("Layout/Computer/Monitor/StartOverlay")
 power_button_path = NodePath("Layout/Computer/Monitor/StartOverlay/PowerBtn")
 view_overview_path = NodePath("Layout/RoomOverview")
 view_computer_path = NodePath("Layout/Computer")
 computer_button_path = NodePath("Layout/RoomOverview/ComputerBtn")
 leave_button_path = NodePath("Layout/Computer/LeaveBtn")
+goals_box_path = NodePath("Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout/GoalsBox")
 
 [node name="Background" type="ColorRect" parent="." unique_id=236709789]
 layout_mode = 0
@@ -74,6 +77,20 @@ size_flags_horizontal = 3
 [node name="EarnedLabel" type="Label" parent="Layout/NavBar/Row" unique_id=2054181797]
 layout_mode = 2
 text = "$0"
+
+[node name="SepDay" type="VSeparator" parent="Layout/NavBar/Row" unique_id=1229802351]
+layout_mode = 2
+
+[node name="DayLabel" type="Label" parent="Layout/NavBar/Row" unique_id=533005417]
+layout_mode = 2
+text = "День 1"
+
+[node name="SepEnergy" type="VSeparator" parent="Layout/NavBar/Row" unique_id=1811891839]
+layout_mode = 2
+
+[node name="EnergyLabel" type="Label" parent="Layout/NavBar/Row" unique_id=103164184]
+layout_mode = 2
+text = "Энергия 8/8"
 
 [node name="Computer" type="Control" parent="Layout" unique_id=1967306364]
 clip_contents = true
@@ -382,3 +399,28 @@ offset_bottom = 20.0
 text = "Кликни на компьютер — сядь работать"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="GoalsPanel" type="PanelContainer" parent="Layout/RoomOverview" unique_id=1244444079]
+layout_mode = 0
+anchor_left = 0.6
+anchor_top = 0.06
+anchor_right = 0.98
+anchor_bottom = 0.5
+
+[node name="GoalsMargin" type="MarginContainer" parent="Layout/RoomOverview/GoalsPanel" unique_id=1952272585]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="GoalsLayout" type="VBoxContainer" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin" unique_id=1009104048]
+layout_mode = 2
+
+[node name="GoalsHeader" type="Label" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout" unique_id=1188984147]
+modulate = Color(0.95, 0.95, 0.6, 1)
+layout_mode = 2
+text = "Цели дня"
+
+[node name="GoalsBox" type="VBoxContainer" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout" unique_id=600523495]
+layout_mode = 2
