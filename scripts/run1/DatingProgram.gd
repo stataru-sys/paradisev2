@@ -66,6 +66,8 @@ func _on_like() -> void:
 	var chance: float = float(p["match_chance"])
 	if _run.has_upgrade("dating_plus"):
 		chance = clampf(chance + 0.1, 0.0, 1.0)
+	if _run.has_agent("lyudmila"):
+		chance = clampf(chance + 0.15, 0.0, 1.0)
 	var roll: float = randf()
 	if roll < chance:
 		_run.register_match_added(p)
@@ -79,6 +81,14 @@ func _on_like() -> void:
 func _on_dislike() -> void:
 	if int(_run.energy) <= 0:
 		return
+	if _run.has_agent("lyudmila") and randf() < 0.2 and _run.matches.size() > 0:
+		var target: Dictionary = _run.matches[randi() % _run.matches.size()]
+		var target_id: String = String(target.get("id", ""))
+		var current: float = float(_run.sympathies.get(target_id, 0.5))
+		var updated: float = clampf(current - 0.1, 0.0, 1.0)
+		_run.sympathies[target_id] = updated
+		GameEvents.sympathy_changed.emit(target_id, updated)
+		GameEvents.event_log_added.emit("Людмила вместо тебя написала %s: симпатия −0.1" % String(target.get("name", target_id)))
 	_advance()
 
 func _advance() -> void:

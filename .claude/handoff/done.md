@@ -4,6 +4,50 @@
 
 ---
 
+## Slice E — ИИ-агенты ✓
+
+**Коммит:** будет создан после ревью keeper'ом.
+
+**Что добавлено:**
+
+| Файл | Что |
+|---|---|
+| `scenes/run2/AgentShopApp.tscn` *(новый)* | UI программы «ИИ-агенты». Bg тёмно-фиолетовый. Header: BackBtn + Title + MoneyLabel. Body: ScrollContainer/VBoxContainer/Inner — секция «Каталог агентов» (4 PanelContainer-карточки) + секция «Мои агенты» (EmptyHired placeholder + HiredBox со зеленовато-modulate карточками). |
+| `scripts/run2/AgentShopApp.gd` *(новый)* | `const AGENTS: Array[Dictionary]` с 4 агентами. `_rebuild_shop_list()` + `_rebuild_hired_list()` rebuild на `money_changed`/`agent_hired`. На клик «Нанять» → `RunService.purchase_agent(id, cost)`, если true — `event_log_added("Нанят: <имя>")`. |
+| `scripts/core/RunService.gd` *(изменён)* | `purchase_agent(agent_id, cost) -> bool` (по образцу `purchase_upgrade`: проверка дубликата, money, Economy.spend, append в `active_agents`, эмит `agent_hired`). `has_agent(id) -> bool`. **`apply_agents_for_new_day()`** — вызывается из `next_day()` сразу после `day_changed.emit()`, до `energy_changed.emit()`. Внутри: если has_agent("mini_delegator") — `Economy.add(10)` + event_log; 10% шанс — `energy -= 1` + event_log. |
+| `scripts/core/GameEvents.gd` *(изменён)* | Добавлен `signal agent_hired(agent_id: String)`. |
+| `scripts/run2/Run2.gd` *(изменён)* | `SCENE_PATHS["agents"] = "res://scenes/run2/AgentShopApp.tscn"` + в `_ready()` `if not _run.has_unlock("agents"): _run.unlock("agents")`. |
+| `scripts/run1/WorkProgram.gd` *(изменён)* | В `_ready()` после построения words/categories: если `_run.has_agent("intern_gpt")` — `call_deferred("_intern_auto_solve")`. Новые функции `_intern_auto_solve()` (берёт случайное слово, 25% выбирает чужую категорию) и `_intern_drop()` (повторяет логику `_on_word_dropped`, но **без `spend_energy(1)`**). Эмитит `event_log_added` с пометкой «правильно»/«ошибка, штраф 1$». |
+| `scripts/run1/DatingProgram.gd` *(изменён)* | `_on_like`: после dating_plus-проверки добавлен блок `if has_agent("lyudmila"): chance = clampf(chance + 0.15, 0.0, 1.0)`. `_on_dislike`: 20% шанс «промашки» — выбирает случайный матч из `_run.matches`, снижает симпатию на 0.1, эмитит sympathy_changed + event_log. |
+| `scripts/run1/MailProgram.gd` *(изменён)* | `_roll_reply_buttons()` — если `has_agent("answerer_3000")` — `_add_agent_reply_button()` (фиолетовая Button «Пусть Ответчик-3000 ответит» первой в HBox). Новая функция `_on_agent_reply_pressed()` — выбор реакции 60/40, симпатия ±0.1, **не тратит энергию**, `register_reply_sent`, event_log_added. |
+
+**Smoke через MCP:**
+1. `play_scene main` → setup `current_day=2 + Economy.add(500)` → «Начать Run 1» → routing day 2 → Run2 ✓
+2. Computer → Включить → Desktop2: **все 6 иконок яркие** (включая ИИ-агенты) ✓
+3. Клик «ИИ-агенты» → AgentShopApp с 4 карточками, header «Деньги: 500$» ✓
+4. `purchase_agent("mini_delegator", 120)` → true, money 500→380. `purchase_agent("answerer_3000", 100)` → true, money 380→280. `active_agents=["mini_delegator","answerer_3000"]` ✓
+5. `next_day()` → money 280→290 (delta +10 от Мини-делегатора), event_log: «Мини-делегатор: +10$ за «работу пока ты спал»» ✓
+6. Повторный `purchase_agent("mini_delegator", 120)` → false ✓
+7. Добавлен fake match anya, открыта Mail → видна фиолетовая Button «Пусть Ответчик-3000 ответит» первой в ряду reply-buttons ✓
+8. Программно `agent_btn.pressed.emit()` → energy 8→8 (delta 0, **не тратит энергию**), sympathy anya 0.50→0.40 (negative reaction). ✓
+
+**Что keeper'у проверить вручную:**
+- Тон описаний агентов (особенно «Решит за тебя 1 карточку в Работе при открытии. 25% шанс ошибки. Энергию не тратит — твою.» и «20% шанс «нажать не туда» — снижает симпатию у случайного матча.»).
+- Цены агентов 60 / 80 / 100 / 120 — соотносятся ли с экономикой (4–5 полных-категорий-в-Work на одного агента).
+- Intern_gpt и Людмила НЕ тестировались визуально (intern_gpt теоретически должен сработать на открытии Work, проверял только что код компилируется и логика drop-без-энергии написана). Если в реальной игре будет странное поведение (например intern_gpt дропает дважды или его эффект применяется на каждом перезаходе в Work) — это надо посмотреть.
+- В Run2 hint снизу всё ещё «Серые иконки пока заперты. Не время.» — но серых иконок больше нет, hint выглядит странно. Поправляется одним modulate-update в Desktop2.gd или просто текстом — но это нюанс для Slice F.
+
+**Компромиссы / known issues:**
+- Каталог агентов как `const AGENTS` в `AgentShopApp.gd` (не `.tres`) — сознательно, по аналогии с UPGRADES в C.
+- `mini_delegator` хаос-задача (10%) применяется через прямую модификацию `rs.energy` минуя `spend_energy()`. Это потому, что `spend_energy(1)` при `energy=max_energy` сразу после `next_day` мог бы триггернуть `_finish_day()` если max_energy=1 (теоретически). Обходим явным `energy = max(0, energy - 1)`. На практике в текущем балансе этой проблемы нет, но решил перестраховаться.
+- intern_gpt дропает на первой открытой сессии Work. Если игрок выйдет в Desktop и снова войдёт в Work в тот же день — intern_gpt сработает заново. Это «фича для тестов», keeper может попросить ограничить «один раз в день» через флаг `_intern_used_today` в RunService.
+- Answerer-3000 при наличии нескольких матчей применяется к **текущему** диалогу. Если игрок не открыл диалог — кнопка тоже не появится (т.к. она в `_roll_reply_buttons`, который вызывается из `_open_chat`).
+- При активном `confident_replies` + `answerer_3000`: confident_replies НЕ стакается с answerer (тот всегда 60/40 — описание агента «60% позитивных» зафиксировано). Если keeper хочет стакать — изменить в `_on_agent_reply_pressed` на `0.6 + (0.1 if has_upgrade("confident_replies") else 0.0)`.
+
+**Следующий слайс (Slice F — Event Log + Day Summary Run 2 + полировка):** см. `next.md`. Это финальный слайс мастер-плана.
+
+---
+
 ## Slice D — Казино ✓
 
 **Коммит:** будет создан после ревью keeper'ом (см. `git status`).

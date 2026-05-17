@@ -148,7 +148,18 @@ func next_day() -> void:
 	for k: String in _goals_state.keys():
 		_goals_state[k] = false
 	GameEvents.day_changed.emit(current_day)
+	apply_agents_for_new_day()
 	GameEvents.energy_changed.emit(energy, max_energy)
+
+func apply_agents_for_new_day() -> void:
+	if has_agent("mini_delegator"):
+		var economy: Node = get_node_or_null("/root/Economy")
+		if economy != null:
+			economy.add(10)
+			GameEvents.event_log_added.emit("Мини-делегатор: +10$ за «работу пока ты спал»")
+		if randf() < 0.1 and energy > 0:
+			energy = max(0, energy - 1)
+			GameEvents.event_log_added.emit("Мини-делегатор: хаос-задача отняла 1 энергию")
 
 func _compute_max_energy() -> int:
 	var bonus: int = 0
@@ -174,6 +185,25 @@ func purchase_upgrade(upgrade_id: String, cost: int) -> bool:
 
 func has_upgrade(upgrade_id: String) -> bool:
 	return purchased_upgrades.has(upgrade_id)
+
+func purchase_agent(agent_id: String, cost: int) -> bool:
+	if agent_id.is_empty():
+		return false
+	if has_agent(agent_id):
+		return false
+	var economy: Node = get_node_or_null("/root/Economy")
+	if economy == null:
+		return false
+	if int(economy.money) < cost:
+		return false
+	if not economy.spend(cost):
+		return false
+	active_agents.append(agent_id)
+	GameEvents.agent_hired.emit(agent_id)
+	return true
+
+func has_agent(agent_id: String) -> bool:
+	return active_agents.has(agent_id)
 
 func unlock(program_id: String) -> void:
 	if program_id.is_empty():

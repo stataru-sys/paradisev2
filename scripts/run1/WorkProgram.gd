@@ -43,6 +43,8 @@ func _ready() -> void:
 	_build_categories()
 	_update_earned_label()
 	_setup_autoclicker_button()
+	if _run.has_agent("intern_gpt"):
+		call_deferred("_intern_auto_solve")
 
 func _build_data() -> void:
 	var all_words: Array[String] = []
@@ -135,6 +137,54 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 
 func _update_earned_label() -> void:
 	_earned_label.text = "Заработано за день: %d$" % _earned_today
+
+func _intern_auto_solve() -> void:
+	if _words_box.get_child_count() == 0:
+		return
+	var idx: int = randi() % _words_box.get_child_count()
+	var card: WordCard = _words_box.get_child(idx) as WordCard
+	if card == null:
+		return
+	var word: String = card.word
+	var correct_cat: String = String(_correct_lookup.get(word, ""))
+	var mistake: bool = randf() < 0.25
+	var target_cat: String = correct_cat
+	if mistake:
+		var pool: Array[String] = []
+		for c: String in WORDS_BY_CATEGORY.keys():
+			if c != correct_cat:
+				pool.append(c)
+		if pool.size() > 0:
+			target_cat = pool[randi() % pool.size()]
+	for slot_node: Node in _categories_box.get_children():
+		if slot_node is CategorySlot and (slot_node as CategorySlot).category_name == target_cat:
+			_intern_drop(slot_node as CategorySlot, word, card, correct_cat == target_cat)
+			return
+
+func _intern_drop(slot: CategorySlot, word: String, card: Control, correct: bool) -> void:
+	if correct:
+		card.queue_free()
+		var counter: int = int(_category_counters[slot.category_name]) + 1
+		_category_counters[slot.category_name] = counter
+		slot.label.text = "%s %d/%d" % [slot.category_name, counter, _category_targets[slot.category_name]]
+		_words_remaining -= 1
+		_run.register_work_correct()
+		if counter == _category_targets[slot.category_name]:
+			var bonus: int = CATEGORY_FULL_BONUS + (MONITOR_BONUS if _run.has_upgrade("monitor") else 0)
+			_economy.add(bonus)
+			_earned_today += bonus
+			_run.register_money_earned(bonus)
+		_update_earned_label()
+		if _words_remaining == 0:
+			_finish_panel.visible = true
+			GameEvents.work_day_finished.emit(_earned_today)
+		GameEvents.event_log_added.emit("Стажёр-GPT: %s → %s [правильно]" % [word, slot.category_name])
+	else:
+		_economy.add(-MISTAKE_PENALTY)
+		_earned_today -= MISTAKE_PENALTY
+		_run.register_work_error()
+		_update_earned_label()
+		GameEvents.event_log_added.emit("Стажёр-GPT: %s → %s [ошибка, штраф 1$]" % [word, slot.category_name])
 
 func _setup_autoclicker_button() -> void:
 	if not _run.has_upgrade("autoclicker"):

@@ -94,6 +94,8 @@ func _open_chat(profile_id: String) -> void:
 func _roll_reply_buttons() -> void:
 	for c: Node in _reply_buttons_box.get_children():
 		c.queue_free()
+	if _run.has_agent("answerer_3000"):
+		_add_agent_reply_button()
 	if int(_run.energy) <= 0:
 		return
 	var pool: Array[String] = REPLY_POOL.duplicate()
@@ -107,6 +109,44 @@ func _roll_reply_buttons() -> void:
 		btn.custom_minimum_size = Vector2(0, 60)
 		btn.pressed.connect(func() -> void: _on_reply_picked(phrase))
 		_reply_buttons_box.add_child(btn)
+
+func _add_agent_reply_button() -> void:
+	var btn: Button = Button.new()
+	btn.text = "Пусть Ответчик-3000 ответит"
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, 60)
+	btn.modulate = Color(0.85, 0.78, 1.0, 1)
+	btn.pressed.connect(_on_agent_reply_pressed)
+	_reply_buttons_box.add_child(btn)
+
+func _on_agent_reply_pressed() -> void:
+	if _current_id.is_empty():
+		return
+	var positive: bool = randf() < 0.6
+	var sympathy: float = float(_run.sympathies.get(_current_id, 0.5))
+	sympathy += SYMPATHY_STEP if positive else -SYMPATHY_STEP
+	sympathy = clampf(sympathy, 0.0, 1.0)
+	_run.sympathies[_current_id] = sympathy
+	GameEvents.sympathy_changed.emit(_current_id, sympathy)
+	var reaction: String = _pick_reaction(positive)
+	_append_line("Ты (бот)", "<автоматический ответ>")
+	_append_line(_dialog_name.text, reaction)
+	_sympathy_bar.value = sympathy * 100.0
+	_run.register_reply_sent()
+	GameEvents.event_log_added.emit("Ответчик-3000 ответил %s: %s реакция" % [_dialog_name.text, "положительная" if positive else "отрицательная"])
+	if sympathy >= 1.0:
+		_outcome_label.text = SUCCESS_TEXT
+		_outcome_label.visible = true
+		for c: Node in _reply_buttons_box.get_children():
+			c.queue_free()
+		return
+	if sympathy <= 0.0:
+		_outcome_label.text = FAIL_TEXT
+		_outcome_label.visible = true
+		for c: Node in _reply_buttons_box.get_children():
+			c.queue_free()
+		return
+	_roll_reply_buttons()
 
 func _on_reply_picked(phrase: String) -> void:
 	if int(_run.energy) <= 0:
