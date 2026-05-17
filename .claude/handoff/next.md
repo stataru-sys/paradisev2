@@ -1,32 +1,35 @@
-# Slice 0 — Project bootstrap
+# Slice 0 — ЗАКРЫТ ✓
 
-## Goal
-Открыть проект в Godot 4.x, убедиться что Bootstrap-сцена запускается без ошибок, MCP-плагин подключился.
-
-## Steps (для coder-чата ИЛИ человека)
-1. Открыть Godot 4.x → Import → выбрать `D:\ClaudeProjects\paradise\project.godot`.
-2. Project → Project Settings → Plugins → убедиться что `Godot MCP Pro` включён (галочка Enable).
-3. В нижней панели должна появиться вкладка `MCP Pro` с зелёной точкой коннекта (после старта Claude Code в этой папке).
-4. F5 (Play) → запустится Bootstrap-сцена → в Output: `[Bootstrap] Paradise 2033 — boot OK`.
-
-## Acceptance
-- [ ] `project.godot` открывается без ошибок (Output → нет красных строк).
-- [ ] Bootstrap.tscn — main scene, запускается по F5.
-- [ ] В Output появляется `[Bootstrap] Paradise 2033 — boot OK`.
-- [ ] MCP-плагин включён и виден в нижней панели.
-
-## Out of scope
-- Никаких сервисов, сцен MainMenu/MainScene, ScriptableObjects-аналогов. Это Slice 1.
-- Не трогать `.mcp.json` — он уже корректен.
+Godot 4.6.2 открывает проект, MCP-плагин коннектится, `MainMenu.tscn` запускается по F5, выводит `[MainMenu] ready — Paradise 2033 boot OK`. Архитектурный паттерн — чистый Godot-way (autoload-сервисы, без ServiceLocator-обёртки). Скиллы Godot MCP Pro доступны в `.claude/skills/godot-mcp.md`.
 
 ---
 
-# Slice 1 (предварительно) — Core services + TaskCloud MVP
+# Slice 1 — Core autoload-сервисы (Economy, Run, Save)
 
-(Активировать после того как Slice 0 закрыт.)
+## Goal
+Завести три autoload-сервиса со стартовым state, минимальными методами и `reset()`. Сейв загружается при старте, money/energy переживают рестарт. Один тестовый вызов из MainMenu для smoke-проверки.
 
-Реализовать `EconomyService`, `RunService`, `SaveService` (заглушки в `scripts/core/`),
-зарегистрировать через `ServiceLocator` в `Bootstrap._ready()`. Один `TaskCloud` на сцене
-с тапом-обработчиком, который снимает энергию через `EconomyService` и эмитит `task_completed`.
+## Files to touch
+- `scripts/core/Economy.gd` — energy/money/exp, методы `add_money(int)`, `spend_energy(int)`, `regen_tick(float)`, `reset()`. Эмитит `GameEvents.money_changed`/`energy_changed`/`energy_depleted`.
+- `scripts/core/Run.gd` — enum `Phase { RUN1, RUN2, PRESTIGED }`, `current_phase`, `advance()`, `reset()`. Эмитит `GameEvents.run_ended(phase)`.
+- `scripts/core/Save.gd` — `load_game()`/`save_game()`, файл `user://save.json`, поле `save_version: int` со switch-миграцией. Подписан на `GameEvents.task_completed` для авто-сейва. Также сохраняет на `GameEvents.run_ended`.
+- `project.godot` — добавить три autoload через **MCP `add_autoload`** (НЕ Write/Edit напрямую).
+- `scripts/ui/MainMenu.gd` — в `_ready()` дёрнуть `Save.load_game()`, вывести в Output текущее `Economy.money` для smoke-теста.
 
-Подробности добавит keeper после ревью Slice 0.
+## Acceptance
+- [ ] `Economy`, `Run`, `Save` зарегистрированы в `[autoload]` и видны через MCP `get_project_info`.
+- [ ] `validate_script` чист на всех трёх.
+- [ ] F5 → MainMenu выводит: `[MainMenu] ready — Paradise 2033 boot OK` и `[Save] loaded (money=0, energy=100)` при первом запуске.
+- [ ] Тест-сценарий через MCP: `play_scene` → дёрнуть `execute_game_script` с `Economy.add_money(123); Save.save_game()` → `stop_scene` → перезапуск → в Output `money=123`.
+- [ ] `save_version` = 1, switch в `migrate_if_needed()` уже на месте (с пустой веткой) на день написания.
+
+## Out of scope (НЕ делать в этом слайсе)
+- TaskCloud, агенты, импланты, диалоги. Это Slice 2.
+- Реальное меню с кнопками — MainMenu остаётся техническим выводом в Output.
+- Telemetry CSV — Slice 3.
+- UI с энергией/деньгами — Slice 2 (вместе с первой задачей).
+
+## Подсказки
+- Перед стартом — прочитать `.claude/skills/godot-mcp.md`, секции «Изучение проекта», «Написание и редактирование скриптов», «Тестирование и отладка».
+- `add_autoload` принимает `name`, `path`, `singleton` (=true) — это безопасный способ править `[autoload]`.
+- На каждом сервисе обязателен `reset()` — даже если в Slice 1 он не вызывается (нужен для Slice 4 при Prestige-перезапуске).

@@ -10,7 +10,7 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 
 - **Жанр:** idle-кликер с престижем; геймплейный референс — корейский *Don't Get Fired!* (облачки-задания, тап тратит энергию, % шанс провала, делегирование агентам).
 - **Платформа:** Steam (PC) на релиз; Standalone Windows для playtest'ов; mobile-адаптация — после Steam.
-- **Стек:** Godot 4.x, GDScript, 2D, GL Compatibility renderer (для широкой совместимости PC). Пиксель-арт — AI-генерация (Midjourney/SDXL) + Aseprite, импорт через стандартный Godot importer (CompressedTexture2D с Nearest filter).
+- **Стек:** Godot 4.6.2-stable, GDScript, 2D, GL Compatibility renderer (для широкой совместимости PC). Пиксель-арт — AI-генерация (Midjourney/SDXL) + Aseprite, импорт через стандартный Godot importer (CompressedTexture2D с Nearest filter).
 - **MCP-стек:** Godot MCP Pro v1.13.0. Сервер живёт **вне** проекта в `C:\Users\stas1\Downloads\godot-mcp-pro-v1.13.0\server\`, addon-плагин лежит **внутри** проекта в `addons/godot_mcp/`.
 - **Язык общения:** русский. Тон в нарративе игры — сухая ирония + бытовой мат (авторская стилистика).
 
@@ -22,8 +22,10 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 | `.claude/docs/workflow.md` | Описание keeper/coder two-chat workflow + шаблоны `next.md`/`done.md` |
 | `.claude/handoff/next.md` | **Что делать в текущей coder-сессии** (живой документ от keeper'а) |
 | `.claude/handoff/done.md` | Отчёт coder'а после слайса (живой) |
-| `scripts/core/` | GameEvents, ServiceLocator (autoload), Bootstrap, будущие сервисы (Economy/Run/Save) |
-| `scenes/Bootstrap.tscn` | main_scene проекта, единственная точка инициализации сервисов |
+| `.claude/skills/godot-mcp.md` | **Скиллы Godot MCP Pro** — workflow-паттерны и подсказки по 169 MCP-тулам. **Coder читает первым делом перед любой работой через MCP.** |
+| `scripts/core/` | `GameEvents.gd` (autoload-event-bus) + будущие autoload-сервисы (`Economy`, `Run`, `Save`) |
+| `scripts/ui/` | UI-скрипты (`MainMenu.gd`, будущие `HUDController`, `ShopUI` и т.п.) |
+| `scenes/MainMenu.tscn` | main_scene проекта (заглушка под Slice 0, в Slice 1+ — реальное меню) |
 | `resources/{tasks,agents,implants,dialogues,fails}/` | `.tres`-ресурсы — единственный способ хранить контент |
 | `addons/godot_mcp/` | Godot-плагин MCP Pro, включён в `project.godot` |
 
@@ -40,7 +42,7 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 Те же принципы что в Unity-прототипе, но с заменой механизмов под Godot 4.
 
 1. **Event-bus с дня 1 — через signals.** `GameEvents` — autoload-синглтон со списком `signal task_completed(...)` и т.п. Никаких прямых ссылок между несвязанными системами. Подписка — `GameEvents.task_completed.connect(_on_task_completed)`. Названия сигналов — past tense.
-2. **Три сервиса, не один GameManager.** `EconomyService` / `RunService` / `SaveService` — обычные `RefCounted`/`Node`, **не autoload**, регистрируются через `ServiceLocator` (тоже autoload) в `Bootstrap._ready()`. Это позволяет пересоздавать сервисы между ранами и легко мокать в тестах.
+2. **Сервисы = autoload-синглтоны, не ServiceLocator.** `Economy`, `Run`, `Save` — каждый отдельный autoload в `[autoload]`-секции `project.godot`. Из любой ноды — `Economy.add_money(50)`, `Save.load_game()`. У каждого сервиса обязателен метод `reset()` — для пересоздания state между ранами (без перегрузки autoload-инстанса). Это идиоматичный Godot-way; ServiceLocator-обёртка не нужна, она была лишним слоем из Unity-привычек.
 3. **Resource-driven контент.** Всё перечислимое (задачи, агенты, импланты, диалоги, fail'ы) — кастомный `Resource` (`class_name TaskRes extends Resource` и т.п.), хранится как `.tres` в `resources/`. Это аналог Unity ScriptableObject в Godot.
 4. **Save с версионированием.** Файл — `user://save.json`, формат — `Dictionary` через `JSON.stringify` + поле `save_version: int` + `migrate_if_needed()` switch по версии. Стоит 30 минут на старте, спасает первый playtest.
 5. **Имплант = swap дочерней `Sprite2D`-ноды**, НЕ AnimationTree/AnimatedSprite2D. Каждая часть тела — отдельная child-нода под `Player` со своим `texture`. На каждый имплант — отдельный `Texture2D` ссылкой в `ImplantRes`. Артист добавляет вариант независимо, не трогая остальные части.
@@ -61,6 +63,10 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 - **Звук:** freesound.org placeholder для MVP.
 - **Шрифты:** TTF/OTF положить в `resources/fonts/`, использовать через `Theme`-ресурс (а не в каждом `Label` руками).
 
+## Skills — Godot MCP Pro
+
+**Перед любой работой через MCP-тулы coder обязан прочитать `.claude/skills/godot-mcp.md`.** Это адаптированные авторами плагина workflow-паттерны под 169 MCP-инструментов: с чего начинать (`get_project_info` → `get_filesystem_tree` → `get_scene_tree`), как корректно создавать сцены и скрипты, как делать playtest-цикл (`play_scene` → `simulate_*` → `get_game_screenshot` → `stop_scene`), какие есть batch-операции и анализ-тулы. Файл — копия `addons/godot_mcp/skills.ru.md` (русская локаль из дистрибутива плагина); обновлять можно из `addons/godot_mcp/skills.ru.md` при апдейте MCP Pro до новой версии.
+
 ## MCP setup status
 
 - ✅ **Godot MCP Pro v1.13.0** установлен. Сервер собран в `C:\Users\stas1\Downloads\godot-mcp-pro-v1.13.0\server\build\index.js`, проверен через `node build/setup.js doctor` — All good.
@@ -68,6 +74,7 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 - ✅ **`.mcp.json`** в корне проекта с абсолютным путём к `build/index.js`. Коммитится в git (project scope).
 - ⚠️ **Editor vs Runtime tools.** В MCP Pro разделение: editor-tools работают всегда, runtime-tools (симуляция кликов, чтение state запущенной игры, скриншоты) требуют сначала вызова `play_scene`. Без `play_scene` — `runtime_*` всегда падают.
 - ⚠️ **Никогда не редактируй `project.godot` напрямую** через Write/Edit — Godot Editor перезаписывает файл при сохранении. Используй MCP `set_project_setting` или редактируй через UI Godot и пересохраняй.
+- ⚠️ **Autoload-секция содержит MCP-сервисы плагина** (`MCPScreenshot`, `MCPInputService`, `MCPGameInspector`) — это **не наши** autoload-ы, их зарегистрировал плагин при первом enable. Не удалять: без них не работают runtime-тулы (`get_game_screenshot`, `simulate_*`, `find_nodes_by_script`). Наши собственные autoload-ы — только `GameEvents` и `ServiceLocator`.
 - ⚠️ **Stale `node.exe`** — если MCP «Waiting for connection», в Task Manager убить все `node.exe` и перезапустить Claude Code.
 
 ### Первый запуск Godot
@@ -75,7 +82,7 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 1. Godot 4.x → Import → выбрать `D:\ClaudeProjects\paradise\project.godot`.
 2. Project → Project Settings → Plugins → `Godot MCP Pro` → **Enable**.
 3. Нижняя панель → вкладка `MCP Pro` → должна показать **зелёный** коннект-дот после старта Claude Code в этой папке.
-4. F5 → запуск Bootstrap-сцены → в Output: `[Bootstrap] Paradise 2033 — boot OK`.
+4. F5 → запускается main_scene (`MainMenu.tscn`) → в Output: `[MainMenu] ready — Paradise 2033 boot OK`.
 
 ### Ключевые MCP-инструменты
 
@@ -97,15 +104,14 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 node C:/Users/stas1/Downloads/godot-mcp-pro-v1.13.0/server/build/cli.js --help
 node C:/Users/stas1/Downloads/godot-mcp-pro-v1.13.0/server/build/cli.js project info
 node C:/Users/stas1/Downloads/godot-mcp-pro-v1.13.0/server/build/cli.js scene tree
-node C:/Users/stas1/Downloads/godot-mcp-pro-v1.13.0/server/build/cli.js script read --path res://scripts/core/Bootstrap.gd
+node C:/Users/stas1/Downloads/godot-mcp-pro-v1.13.0/server/build/cli.js script read --path res://scripts/ui/MainMenu.gd
 ```
 
 ## Текущий статус
 
-- **Phase:** Bootstrap. Структура папок и autoload-скелет созданы. MCP-плагин в проекте, сервер собран. `Bootstrap.tscn` — main scene, печатает boot-маркер.
-- **Slice 0** активен — см. `.claude/handoff/next.md`. Цель: убедиться что Godot открывает проект, MCP-плагин коннектится, Bootstrap запускается.
-- **Сцены:** только `scenes/Bootstrap.tscn`. MainMenu/MainScene/EndScreen — Slice 1+.
-- **Сервисы:** Economy/Run/Save — ещё не написаны, заготовки в `Bootstrap._ready()` закомментированы. Slice 1.
+- **Phase:** Slice 0 закрыт. Godot 4.6.2 открывает проект, MCP-плагин коннектится зелёным дотом, `MainMenu.tscn` (заглушка) запускается по F5 и печатает `[MainMenu] ready — Paradise 2033 boot OK`. Bootstrap-сцена и ServiceLocator-обёртка убраны — переход на чистый Godot-way (см. правило #2).
+- **Сцены:** только `scenes/MainMenu.tscn`. MainScene/EndScreen — Slice 1+.
+- **Сервисы:** `Economy`/`Run`/`Save` — ещё не написаны. Будут autoload-синглтонами с `reset()` на каждом. Slice 1.
 - **Сейв:** не реализован. Формат — `user://save.json`, версионирование с дня реализации.
 - **Telemetry:** не реализована. План — CSV в `user://playtest_log.csv`, append-mode, формат как в Unity-версии.
 - **Git:** инициализирован, первый коммит — bootstrap.
