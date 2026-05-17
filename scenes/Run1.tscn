@@ -4,10 +4,14 @@
 
 [node name="Run1" type="Control" unique_id=525681926]
 layout_mode = 3
-anchors_preset = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = ExtResource("1_qfbim")
-program_host_path = NodePath("Layout/ProgramHost")
+program_host_path = NodePath("Layout/Room/Monitor/MonitorScreen")
 earned_label_path = NodePath("Layout/NavBar/Row/EarnedLabel")
+start_overlay_path = NodePath("Layout/Room/Monitor/StartOverlay")
+power_button_path = NodePath("Layout/Room/Monitor/StartOverlay/PowerBtn")
 
 [node name="Background" type="ColorRect" parent="." unique_id=236709789]
 layout_mode = 0
@@ -67,6 +71,134 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "$0"
 
-[node name="ProgramHost" type="Control" parent="Layout" unique_id=1967306364]
+[node name="Room" type="Control" parent="Layout" unique_id=1967306364]
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="Wall" type="ColorRect" parent="Layout/Room" unique_id=1050617208]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.18, 0.15, 0.21, 1)
+
+[node name="Floor" type="ColorRect" parent="Layout/Room" unique_id=1769146857]
+layout_mode = 0
+anchor_top = 0.7
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.22, 0.16, 0.12, 1)
+
+[node name="Bed" type="ColorRect" parent="Layout/Room" unique_id=1645010334]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.62
+anchor_right = 0.2
+anchor_bottom = 0.96
+color = Color(0.42, 0.48, 0.55, 1)
+
+[node name="BedLabel" type="Label" parent="Layout/Room" unique_id=1271875168]
+modulate = Color(0.15, 0.15, 0.18, 1)
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.92
+anchor_right = 0.2
+anchor_bottom = 0.96
+text = "Кровать"
+horizontal_alignment = 1
+
+[node name="Dog" type="ColorRect" parent="Layout/Room" unique_id=829593163]
+layout_mode = 0
+anchor_left = 0.22
+anchor_top = 0.84
+anchor_right = 0.29
+anchor_bottom = 0.97
+color = Color(0.72, 0.6, 0.4, 1)
+
+[node name="DogLabel" type="Label" parent="Layout/Room" unique_id=705760643]
+modulate = Color(0.15, 0.1, 0.05, 1)
+layout_mode = 0
+anchor_left = 0.22
+anchor_top = 0.94
+anchor_right = 0.29
+anchor_bottom = 0.98
+text = "Собака"
+horizontal_alignment = 1
+
+[node name="Desk" type="ColorRect" parent="Layout/Room" unique_id=488482506]
+layout_mode = 0
+anchor_left = 0.32
+anchor_top = 0.65
+anchor_right = 0.92
+anchor_bottom = 0.92
+color = Color(0.36, 0.26, 0.18, 1)
+
+[node name="Monitor" type="ColorRect" parent="Layout/Room" unique_id=141027691]
+layout_mode = 0
+anchor_left = 0.36
+anchor_top = 0.08
+anchor_right = 0.88
+anchor_bottom = 0.7
+color = Color(0.08, 0.08, 0.08, 1)
+
+[node name="MonitorScreen" type="Control" parent="Layout/Room/Monitor" unique_id=1014109938]
+clip_contents = true
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = -14.0
+
+[node name="StartOverlay" type="Control" parent="Layout/Room/Monitor" unique_id=826360990]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="OverlayBg" type="ColorRect" parent="Layout/Room/Monitor/StartOverlay" unique_id=107320291]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.04, 0.04, 0.06, 1)
+
+[node name="OverlayHint" type="Label" parent="Layout/Room/Monitor/StartOverlay" unique_id=856678764]
+modulate = Color(0.5, 0.6, 0.5, 1)
+layout_mode = 0
+anchor_top = 0.3
+anchor_right = 1.0
+anchor_bottom = 0.3
+offset_top = -30.0
+offset_bottom = 30.0
+text = "Компьютер выключен"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PowerBtn" type="Button" parent="Layout/Room/Monitor/StartOverlay" unique_id=1974508372]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.55
+anchor_right = 0.5
+anchor_bottom = 0.55
+offset_left = -120.0
+offset_top = -28.0
+offset_right = 120.0
+offset_bottom = 28.0
+text = "ВКЛЮЧИТЬ"
+
+[node name="Stand" type="ColorRect" parent="Layout/Room" unique_id=192359103]
+layout_mode = 0
+anchor_left = 0.6
+anchor_top = 0.7
+anchor_right = 0.64
+anchor_bottom = 0.74
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="Keyboard" type="ColorRect" parent="Layout/Room" unique_id=679525008]
+layout_mode = 0
+anchor_left = 0.45
+anchor_top = 0.78
+anchor_right = 0.78
+anchor_bottom = 0.82
+color = Color(0.15, 0.15, 0.17, 1)
