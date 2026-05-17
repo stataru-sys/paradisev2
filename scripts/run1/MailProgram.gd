@@ -53,9 +53,6 @@ var _current_id: String = ""
 @onready var _reply_buttons_box: HBoxContainer = get_node(reply_buttons_box_path) as HBoxContainer
 @onready var _outcome_label: Label = get_node(outcome_label_path) as Label
 
-func attach_state(_state) -> void:
-	pass
-
 func _ready() -> void:
 	_back_button.pressed.connect(func() -> void: GameEvents.program_closed.emit())
 	_outcome_label.visible = false

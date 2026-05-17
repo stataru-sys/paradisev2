@@ -4,6 +4,47 @@
 
 ---
 
+## Slice B — Run 2 каркас + переход через RunService ✓
+
+**Коммит:** будет создан после ревью keeper'ом (см. `git status`).
+
+**Что добавлено:**
+
+| Файл | Что |
+|---|---|
+| `scenes/Run2.tscn` *(новый)* | Корневой Control дня 2+. Структура полностью совпадает с Run1.tscn (NavBar / Computer-view / RoomOverview / GoalsPanel) — те же `@export`-пути нод. Отличия: text StartOverlay-hint = «Новый день. Опять компьютер.», начальный текст DayLabel = «День 2», script — Run2.gd. |
+| `scripts/run2/Run2.gd` *(новый)* | Полный клон Run1.gd с одним отличием: `SCENE_PATHS["desktop"]` → `res://scenes/run2/Desktop2.tscn`. Все остальные программы (work/dating/mail) переиспользуют сцены из `res://scenes/run1/`. |
+| `scenes/run2/Desktop2.tscn` *(новый)* | Рабочий стол Run 2 — 6 иконок в 2 ряда (Monitor → Layout(VBox) → IconsTop(HBox 3 шт) + GapMid + IconsBottom(HBox 3 шт) + Hint). Слоты: WorkSlot/DatingSlot/MailSlot сверху, ShopSlot/CasinoSlot/AgentsSlot снизу. У нижних трёх `modulate = Color(1,1,1,0.5)` на слот-Control (приглушает Rect+Caption+Btn разом, кнопка кликабельна). Цвета: голубой/розовый/зелёный сверху, жёлтый/красный/фиолетовый снизу. Hint снизу: «Серые иконки пока заперты. Не время.». |
+| `scripts/run2/Desktop2.gd` *(новый)* | 6 NodePath @export, 6 Button.pressed.connect в `_ready()`. Top-3 → `GameEvents.program_open_requested.emit(id)`. Bottom-3 → `_on_locked_pressed(id)`: если `RunService.has_unlock(id)` — открыть программу, иначе `GameEvents.event_log_added.emit("Откроется позже. Тебе пока хватает проблем.")`. |
+| `scripts/ui/MainScene.gd` *(изменён)* | `_ready()` теперь: `day <= 1 → Run1.tscn`, `day >= 2 → Run2.tscn`. Константы `RUN1_SCENE`/`RUN2_SCENE` для читаемости. |
+| `scripts/core/RunService.gd` *(изменён)* | Добавлено `var unlocks: Array[String] = []` + сброс в `reset()` + методы `unlock(id)` (идемпотентный) и `has_unlock(id) -> bool`. Slice C/D/E будут вызывать `unlock("shop"|"casino"|"agents")`. |
+| `scripts/run1/Run1State.gd` *(удалён)* | Файл + `.uid` удалены. Параллельно вычищены no-op `attach_state()` из `Desktop.gd`/`WorkProgram.gd`/`DatingProgram.gd`/`MailProgram.gd` (стояли с типом `Run1State` или `_state` без типа — мешали удалению класса). |
+
+**Smoke через MCP (8/8 зелёных):**
+1. `play_scene main` → MainMenu виден ✓
+2. Клик «Начать Run 1» → Output: `[MainScene] routing day 1 → res://scenes/Run1.tscn`, шапка «День 1 / Энергия 8/8» ✓
+3. `execute_game_script` 8 × `RunService.spend_energy(1)` → DaySummary поверх Run1 («День 1 закрыт / Заработано 0$ / Цели: [ ][ ][ ][x] / Вердикт: Ты почти функционировал. Почти.») ✓
+4. Клик «Начать следующий день» → Output: `[MainScene] routing day 2 → res://scenes/Run2.tscn`, шапка «День 2 / Энергия 8/8», цели сброшены ✓
+5. Клик «Компьютер» → Computer-view, новый StartOverlay-hint «Новый день. Опять компьютер.» ✓
+6. Клик «ВКЛЮЧИТЬ» → Desktop2: 6 иконок, top-3 яркие, bottom-3 приглушённые, Hint виден ✓
+7. `execute_game_script` shop_btn/casino_btn/agents_btn `pressed.emit()` → подписчик собрал 3 сообщения «Откроется позже. Тебе пока хватает проблем.» ✓
+8. Клик «Работа» (top) → WorkProgram запустился в monitor_screen, карточки слов на месте ✓
+
+**Что keeper'у проверить вручную:**
+- Тон Hint в Desktop2 и hint на StartOverlay Run2 («Серые иконки пока заперты. Не время.» / «Новый день. Опять компьютер.»).
+- Цвета приглушённых иконок (modulate 0.5) — не слишком ли блёкло? Можно поднять до 0.6 если плохо читается.
+- Должно ли в день 2 при отсутствии разблокировок цели быть теми же что в день 1, или уже разные? Сейчас — те же DAY1_GOALS (см. Out-of-scope в next.md Slice B / Slice F).
+- В Run2.tscn DayLabel инициализируется текстом «День 2» — это лишь дефолт ноды до того как `_on_day_changed` обновит его; в реальном раннере перезапишется первым же сигналом из `_ready()`.
+
+**Компромиссы / known issues:**
+- `Run2.tscn` — полная копия Run1.tscn (~250 строк). При изменении layout'а комнаты придётся править оба. Альтернатива — вынести RoomOverview/Computer в общий PackedScene; отложено до момента когда обе сцены реально начнут расходиться (Slice F).
+- В Desktop2 «приглушение» сделано через `modulate` на Slot-Control. Кнопка остаётся кликабельной (это нужно чтобы поймать клик и эмитнуть locked-сигнал) — пользователь визуально может подумать что иконка disabled, но при клике получит «лог события». Если в Slice F появится EventLog UI, эти сообщения станут видны.
+- Цели в Run 2 пока `DAY1_GOALS` — формально цели «День 2» это другая история. Расширение целей под день 2 запланировано в Slice F.
+
+**Следующий слайс (Slice C — Магазин апгрейдов):** см. `next.md`.
+
+---
+
 ## Slice A — Run 1 как первый день + RunService + MainScene-роутер ✓
 
 **Коммит:** см. `git log` (последний после "Run 1: общий план...").

@@ -34,9 +34,6 @@ var _swipes: int = 0
 @onready var _match_toast: Label = get_node(match_toast_path) as Label
 @onready var _swipe_counter: Label = get_node(swipe_counter_path) as Label
 
-func attach_state(_state) -> void:
-	pass
-
 func _ready() -> void:
 	_work_hint.visible = false
 	_match_toast.visible = false

@@ -1,0 +1,426 @@
+[gd_scene format=3 uid="uid://drun2cjbbc2030"]
+
+[ext_resource type="Script" uid="uid://byl6o8ob12is3" path="res://scripts/run2/Run2.gd" id="1_qfbim"]
+
+[node name="Run2" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_qfbim")
+program_host_path = NodePath("Layout/Computer/Monitor/MonitorScreen")
+earned_label_path = NodePath("Layout/NavBar/Row/EarnedLabel")
+day_label_path = NodePath("Layout/NavBar/Row/DayLabel")
+energy_label_path = NodePath("Layout/NavBar/Row/EnergyLabel")
+start_overlay_path = NodePath("Layout/Computer/Monitor/StartOverlay")
+power_button_path = NodePath("Layout/Computer/Monitor/StartOverlay/PowerBtn")
+view_overview_path = NodePath("Layout/RoomOverview")
+view_computer_path = NodePath("Layout/Computer")
+computer_button_path = NodePath("Layout/RoomOverview/ComputerBtn")
+leave_button_path = NodePath("Layout/Computer/LeaveBtn")
+goals_box_path = NodePath("Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout/GoalsBox")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.12, 0.12, 0.14, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="NavBar" type="PanelContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Layout/NavBar"]
+layout_mode = 2
+
+[node name="TabWork" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "Работа"
+
+[node name="S1" type="VSeparator" parent="Layout/NavBar/Row"]
+layout_mode = 2
+
+[node name="TabTinder" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "Tinder"
+
+[node name="S2" type="VSeparator" parent="Layout/NavBar/Row"]
+layout_mode = 2
+
+[node name="TabPets" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "Питомцы"
+
+[node name="S3" type="VSeparator" parent="Layout/NavBar/Row"]
+layout_mode = 2
+
+[node name="TabFood" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "Пожрать"
+
+[node name="S4" type="VSeparator" parent="Layout/NavBar/Row"]
+layout_mode = 2
+
+[node name="TabHome" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "Уход за домом"
+
+[node name="Spacer" type="Control" parent="Layout/NavBar/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EarnedLabel" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "$0"
+
+[node name="SepDay" type="VSeparator" parent="Layout/NavBar/Row"]
+layout_mode = 2
+
+[node name="DayLabel" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "День 2"
+
+[node name="SepEnergy" type="VSeparator" parent="Layout/NavBar/Row"]
+layout_mode = 2
+
+[node name="EnergyLabel" type="Label" parent="Layout/NavBar/Row"]
+layout_mode = 2
+text = "Энергия 8/8"
+
+[node name="Computer" type="Control" parent="Layout"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Wall" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.18, 0.15, 0.21, 1)
+
+[node name="Floor" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_top = 0.7
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.22, 0.16, 0.12, 1)
+
+[node name="Bed" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.62
+anchor_right = 0.2
+anchor_bottom = 0.96
+color = Color(0.42, 0.48, 0.55, 1)
+
+[node name="BedLabel" type="Label" parent="Layout/Computer"]
+modulate = Color(0.15, 0.15, 0.18, 1)
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.92
+anchor_right = 0.2
+anchor_bottom = 0.96
+text = "Кровать"
+horizontal_alignment = 1
+
+[node name="Dog" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_left = 0.22
+anchor_top = 0.84
+anchor_right = 0.29
+anchor_bottom = 0.97
+color = Color(0.72, 0.6, 0.4, 1)
+
+[node name="DogLabel" type="Label" parent="Layout/Computer"]
+modulate = Color(0.15, 0.1, 0.05, 1)
+layout_mode = 0
+anchor_left = 0.22
+anchor_top = 0.94
+anchor_right = 0.29
+anchor_bottom = 0.98
+text = "Собака"
+horizontal_alignment = 1
+
+[node name="Desk" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_left = 0.32
+anchor_top = 0.65
+anchor_right = 0.92
+anchor_bottom = 0.92
+color = Color(0.36, 0.26, 0.18, 1)
+
+[node name="Monitor" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_left = 0.36
+anchor_top = 0.08
+anchor_right = 0.88
+anchor_bottom = 0.7
+color = Color(0.08, 0.08, 0.08, 1)
+
+[node name="MonitorScreen" type="Control" parent="Layout/Computer/Monitor"]
+clip_contents = true
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = -14.0
+
+[node name="StartOverlay" type="Control" parent="Layout/Computer/Monitor"]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="OverlayBg" type="ColorRect" parent="Layout/Computer/Monitor/StartOverlay"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.04, 0.04, 0.06, 1)
+
+[node name="OverlayHint" type="Label" parent="Layout/Computer/Monitor/StartOverlay"]
+modulate = Color(0.5, 0.6, 0.5, 1)
+layout_mode = 0
+anchor_top = 0.3
+anchor_right = 1.0
+anchor_bottom = 0.3
+offset_top = -30.0
+offset_bottom = 30.0
+text = "Новый день. Опять компьютер."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PowerBtn" type="Button" parent="Layout/Computer/Monitor/StartOverlay"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.55
+anchor_right = 0.5
+anchor_bottom = 0.55
+offset_left = -120.0
+offset_top = -28.0
+offset_right = 120.0
+offset_bottom = 28.0
+text = "ВКЛЮЧИТЬ"
+
+[node name="Stand" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_left = 0.6
+anchor_top = 0.7
+anchor_right = 0.64
+anchor_bottom = 0.74
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="Keyboard" type="ColorRect" parent="Layout/Computer"]
+layout_mode = 0
+anchor_left = 0.45
+anchor_top = 0.78
+anchor_right = 0.78
+anchor_bottom = 0.82
+color = Color(0.15, 0.15, 0.17, 1)
+
+[node name="LeaveBtn" type="Button" parent="Layout/Computer"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 160.0
+offset_bottom = 44.0
+text = "← Встать"
+
+[node name="RoomOverview" type="Control" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OutdoorBg" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.07, 0.09, 1)
+
+[node name="TopWall" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.04
+anchor_right = 0.98
+anchor_bottom = 0.04
+offset_bottom = 60.0
+color = Color(0.18, 0.15, 0.22, 1)
+
+[node name="LeftWall" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.04
+anchor_right = 0.02
+anchor_bottom = 0.96
+offset_right = 60.0
+color = Color(0.18, 0.15, 0.22, 1)
+
+[node name="Floor" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.04
+anchor_right = 0.98
+anchor_bottom = 0.96
+offset_left = 60.0
+offset_top = 60.0
+color = Color(0.42, 0.3, 0.2, 1)
+
+[node name="Door" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.4
+anchor_top = 0.04
+anchor_right = 0.5
+anchor_bottom = 0.04
+offset_bottom = 60.0
+color = Color(0.55, 0.4, 0.22, 1)
+
+[node name="DoorLabel" type="Label" parent="Layout/RoomOverview"]
+modulate = Color(0.15, 0.1, 0.05, 1)
+layout_mode = 0
+anchor_left = 0.4
+anchor_top = 0.04
+anchor_right = 0.5
+anchor_bottom = 0.04
+offset_bottom = 60.0
+text = "Дверь"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Window" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.18
+anchor_right = 0.02
+anchor_bottom = 0.38
+offset_right = 60.0
+color = Color(0.4, 0.6, 0.8, 1)
+
+[node name="WindowLabel" type="Label" parent="Layout/RoomOverview"]
+modulate = Color(0.1, 0.15, 0.25, 1)
+layout_mode = 0
+anchor_left = 0.02
+anchor_top = 0.18
+anchor_right = 0.02
+anchor_bottom = 0.38
+offset_right = 60.0
+text = "Окно"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Bed" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.08
+anchor_top = 0.18
+anchor_right = 0.32
+anchor_bottom = 0.42
+color = Color(0.45, 0.52, 0.6, 1)
+
+[node name="BedLabel" type="Label" parent="Layout/RoomOverview"]
+modulate = Color(0.1, 0.1, 0.15, 1)
+layout_mode = 0
+anchor_left = 0.08
+anchor_top = 0.18
+anchor_right = 0.32
+anchor_bottom = 0.42
+text = "Кровать"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dog" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.36
+anchor_top = 0.55
+anchor_right = 0.44
+anchor_bottom = 0.7
+color = Color(0.75, 0.62, 0.4, 1)
+
+[node name="DogLabel" type="Label" parent="Layout/RoomOverview"]
+modulate = Color(0.15, 0.1, 0.05, 1)
+layout_mode = 0
+anchor_left = 0.36
+anchor_top = 0.55
+anchor_right = 0.44
+anchor_bottom = 0.7
+text = "Собака"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Desk" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.6
+anchor_top = 0.55
+anchor_right = 0.96
+anchor_bottom = 0.92
+color = Color(0.3, 0.22, 0.15, 1)
+
+[node name="Computer" type="ColorRect" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.7
+anchor_top = 0.6
+anchor_right = 0.9
+anchor_bottom = 0.85
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="ComputerLabel" type="Label" parent="Layout/RoomOverview"]
+modulate = Color(0.55, 0.7, 0.55, 1)
+layout_mode = 0
+anchor_left = 0.7
+anchor_top = 0.6
+anchor_right = 0.9
+anchor_bottom = 0.85
+text = "Компьютер"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ComputerBtn" type="Button" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.7
+anchor_top = 0.6
+anchor_right = 0.9
+anchor_bottom = 0.85
+flat = true
+
+[node name="Hint" type="Label" parent="Layout/RoomOverview"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.94
+anchor_right = 0.5
+anchor_bottom = 0.94
+offset_left = -260.0
+offset_top = -20.0
+offset_right = 260.0
+offset_bottom = 20.0
+text = "Кликни на компьютер — сядь работать"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GoalsPanel" type="PanelContainer" parent="Layout/RoomOverview"]
+layout_mode = 0
+anchor_left = 0.6
+anchor_top = 0.06
+anchor_right = 0.98
+anchor_bottom = 0.5
+
+[node name="GoalsMargin" type="MarginContainer" parent="Layout/RoomOverview/GoalsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="GoalsLayout" type="VBoxContainer" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin"]
+layout_mode = 2
+
+[node name="GoalsHeader" type="Label" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout"]
+modulate = Color(0.95, 0.95, 0.6, 1)
+layout_mode = 2
+text = "Цели дня"
+
+[node name="GoalsBox" type="VBoxContainer" parent="Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout"]
+layout_mode = 2

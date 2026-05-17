@@ -28,6 +28,7 @@ var matches: Array[Dictionary] = []
 var sympathies: Dictionary = {}
 var purchased_upgrades: Array[String] = []
 var active_agents: Array[String] = []
+var unlocks: Array[String] = []
 
 # Цели дня (заполняются в _ready, проверяются при day_finished)
 const DAY1_GOALS: Array[Dictionary] = [
@@ -55,6 +56,7 @@ func reset() -> void:
 	sympathies.clear()
 	purchased_upgrades.clear()
 	active_agents.clear()
+	unlocks.clear()
 	_goals_state.clear()
 	for g: Dictionary in DAY1_GOALS:
 		_goals_state[g["id"]] = false
@@ -138,6 +140,16 @@ func next_day() -> void:
 		_goals_state[k] = false
 	GameEvents.day_changed.emit(current_day)
 	GameEvents.energy_changed.emit(energy, max_energy)
+
+func unlock(program_id: String) -> void:
+	if program_id.is_empty():
+		return
+	if unlocks.has(program_id):
+		return
+	unlocks.append(program_id)
+
+func has_unlock(program_id: String) -> bool:
+	return unlocks.has(program_id)
 
 func _build_verdict() -> String:
 	if money_earned_today >= 50:

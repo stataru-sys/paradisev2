@@ -33,9 +33,6 @@ var _words_remaining: int = 0
 @onready var _economy: Node = get_node("/root/Economy")
 @onready var _run: Node = get_node("/root/RunService")
 
-func attach_state(_state: Run1State) -> void:
-	pass
-
 func _ready() -> void:
 	_finish_panel.visible = false
 	_back_button.pressed.connect(func() -> void: GameEvents.program_closed.emit())

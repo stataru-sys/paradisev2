@@ -1,0 +1,212 @@
+[gd_scene format=3 uid="uid://cdsktp2run2x0"]
+
+[ext_resource type="Script" uid="uid://blebfcbtejv2o" path="res://scripts/run2/Desktop2.gd" id="1_dsk2x"]
+
+[node name="Desktop2" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dsk2x")
+work_button_path = NodePath("Monitor/Layout/IconsTop/WorkSlot/Btn")
+dating_button_path = NodePath("Monitor/Layout/IconsTop/DatingSlot/Btn")
+mail_button_path = NodePath("Monitor/Layout/IconsTop/MailSlot/Btn")
+shop_button_path = NodePath("Monitor/Layout/IconsBottom/ShopSlot/Btn")
+casino_button_path = NodePath("Monitor/Layout/IconsBottom/CasinoSlot/Btn")
+agents_button_path = NodePath("Monitor/Layout/IconsBottom/AgentsSlot/Btn")
+
+[node name="Monitor" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.82, 0.82, 0.84, 1)
+
+[node name="Layout" type="VBoxContainer" parent="Monitor"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="IconsTop" type="HBoxContainer" parent="Monitor/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="WorkSlot" type="Control" parent="Monitor/Layout/IconsTop"]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/IconsTop/WorkSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.36, 0.66, 0.86, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/IconsTop/WorkSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Работа"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/IconsTop/WorkSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Sp1" type="Control" parent="Monitor/Layout/IconsTop"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="DatingSlot" type="Control" parent="Monitor/Layout/IconsTop"]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/IconsTop/DatingSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.85, 0.4, 0.65, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/IconsTop/DatingSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Дейтинг"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/IconsTop/DatingSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Sp2" type="Control" parent="Monitor/Layout/IconsTop"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="MailSlot" type="Control" parent="Monitor/Layout/IconsTop"]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/IconsTop/MailSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.45, 0.78, 0.4, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/IconsTop/MailSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Почта"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/IconsTop/MailSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="GapMid" type="Control" parent="Monitor/Layout"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="IconsBottom" type="HBoxContainer" parent="Monitor/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="ShopSlot" type="Control" parent="Monitor/Layout/IconsBottom"]
+modulate = Color(1, 1, 1, 0.5)
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/IconsBottom/ShopSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.92, 0.78, 0.32, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/IconsBottom/ShopSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Магазин"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/IconsBottom/ShopSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Sp3" type="Control" parent="Monitor/Layout/IconsBottom"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="CasinoSlot" type="Control" parent="Monitor/Layout/IconsBottom"]
+modulate = Color(1, 1, 1, 0.5)
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/IconsBottom/CasinoSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.88, 0.35, 0.35, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/IconsBottom/CasinoSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Казино"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/IconsBottom/CasinoSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Sp4" type="Control" parent="Monitor/Layout/IconsBottom"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="AgentsSlot" type="Control" parent="Monitor/Layout/IconsBottom"]
+modulate = Color(1, 1, 1, 0.5)
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/IconsBottom/AgentsSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.62, 0.45, 0.85, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/IconsBottom/AgentsSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "ИИ-агенты"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/IconsBottom/AgentsSlot"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Hint" type="Label" parent="Monitor/Layout"]
+modulate = Color(0.25, 0.25, 0.27, 1)
+layout_mode = 2
+text = "Серые иконки пока заперты. Не время."
+horizontal_alignment = 2

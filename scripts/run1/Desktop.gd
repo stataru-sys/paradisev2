@@ -6,9 +6,6 @@ extends Control
 @export var dating_button_path: NodePath
 @export var mail_button_path: NodePath
 
-func attach_state(_state: Run1State) -> void:
-	pass
-
 func _ready() -> void:
 	(get_node(work_button_path) as Button).pressed.connect(func() -> void: GameEvents.program_open_requested.emit("work"))
 	(get_node(dating_button_path) as Button).pressed.connect(func() -> void: GameEvents.program_open_requested.emit("dating"))
