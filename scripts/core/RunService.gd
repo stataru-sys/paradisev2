@@ -90,6 +90,13 @@ func spend_energy(amount: int = 1) -> bool:
 		_finish_day()
 	return true
 
+func force_finish_day() -> void:
+	if energy <= 0:
+		return
+	energy = 0
+	GameEvents.energy_changed.emit(energy, max_energy)
+	_finish_day()
+
 func register_money_earned(amount: int) -> void:
 	if amount > 0:
 		money_earned_today += amount
@@ -121,6 +128,7 @@ func register_match_added(profile: Dictionary) -> void:
 	matches_today += 1
 	matches.append(profile)
 	sympathies[profile.get("id", "")] = 0.5
+	spend_energy(1)
 
 func get_goals_view() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

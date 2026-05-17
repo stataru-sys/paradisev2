@@ -124,6 +124,7 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 			_economy.add(bonus)
 			_earned_today += bonus
 			_run.register_money_earned(bonus)
+			_run.spend_energy(1)
 		_update_earned_label()
 		if _words_remaining == 0:
 			_finish_panel.visible = true
@@ -133,7 +134,6 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 		_earned_today -= MISTAKE_PENALTY
 		_run.register_work_error()
 		_update_earned_label()
-	_run.spend_energy(1)
 
 func _update_earned_label() -> void:
 	_earned_label.text = "Заработано за день: %d$" % _earned_today
@@ -174,6 +174,7 @@ func _intern_drop(slot: CategorySlot, word: String, card: Control, correct: bool
 			_economy.add(bonus)
 			_earned_today += bonus
 			_run.register_money_earned(bonus)
+			_run.spend_energy(1)
 		_update_earned_label()
 		if _words_remaining == 0:
 			_finish_panel.visible = true

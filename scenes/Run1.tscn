@@ -19,6 +19,7 @@ view_computer_path = NodePath("Layout/Computer")
 computer_button_path = NodePath("Layout/RoomOverview/ComputerBtn")
 leave_button_path = NodePath("Layout/Computer/LeaveBtn")
 goals_box_path = NodePath("Layout/RoomOverview/GoalsPanel/GoalsMargin/GoalsLayout/GoalsBox")
+bed_button_path = NodePath("Layout/RoomOverview/BedBtn")
 
 [node name="Background" type="ColorRect" parent="." unique_id=236709789]
 layout_mode = 0
@@ -327,9 +328,18 @@ anchor_left = 0.08
 anchor_top = 0.18
 anchor_right = 0.32
 anchor_bottom = 0.42
-text = "Кровать"
+text = "Кровать
+(лечь спать)"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="BedBtn" type="Button" parent="Layout/RoomOverview" unique_id=1751442872]
+layout_mode = 0
+anchor_left = 0.08
+anchor_top = 0.18
+anchor_right = 0.32
+anchor_bottom = 0.42
+flat = true
 
 [node name="Dog" type="ColorRect" parent="Layout/RoomOverview" unique_id=1421849778]
 layout_mode = 0

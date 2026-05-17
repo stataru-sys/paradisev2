@@ -163,13 +163,14 @@ func _on_reply_picked(phrase: String) -> void:
 	_append_line(_dialog_name.text, reaction)
 	_sympathy_bar.value = sympathy * 100.0
 	_run.register_reply_sent()
-	_run.spend_energy(1)
 	if sympathy >= 1.0:
 		_outcome_label.text = SUCCESS_TEXT
 		_outcome_label.visible = true
+		_run.spend_energy(1)
 	elif sympathy <= 0.0:
 		_outcome_label.text = FAIL_TEXT
 		_outcome_label.visible = true
+		_run.spend_energy(1)
 	else:
 		_roll_reply_buttons()
 		return

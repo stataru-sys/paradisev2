@@ -25,6 +25,7 @@ const DAY_SUMMARY_SCENE: String = "res://scenes/run1/DaySummary.tscn"
 @export var computer_button_path: NodePath
 @export var leave_button_path: NodePath
 @export var goals_box_path: NodePath
+@export var bed_button_path: NodePath
 
 @onready var _run: Node = get_node("/root/RunService")
 @onready var _program_host: Control = get_node(program_host_path) as Control
@@ -64,7 +65,14 @@ func _ready() -> void:
 	_power_button.pressed.connect(_on_power_pressed)
 	_computer_button.pressed.connect(_on_computer_clicked)
 	_leave_button.pressed.connect(_on_leave_clicked)
+	if bed_button_path != NodePath(""):
+		var bed_btn: Button = get_node_or_null(bed_button_path) as Button
+		if bed_btn != null:
+			bed_btn.pressed.connect(_on_bed_pressed)
 	_show_overview()
+
+func _on_bed_pressed() -> void:
+	_run.force_finish_day()
 
 func _show_overview() -> void:
 	_view_overview.visible = true

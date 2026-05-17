@@ -94,5 +94,4 @@ func _on_dislike() -> void:
 func _advance() -> void:
 	_index += 1
 	_swipes += 1
-	_run.spend_energy(1)
 	_show_current()

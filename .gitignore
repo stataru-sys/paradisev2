@@ -27,6 +27,9 @@ server/build/
 .claude/settings.local.json
 .claude/handoff/*.local.md
 
+# MCP config — содержит абсолютные пути конкретной машины
+.mcp.json
+
 # Logs / playtest artifacts
 *.log
 *.csv
