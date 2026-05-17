@@ -1,0 +1,123 @@
+[gd_scene format=3 uid="uid://b4v5efdeqowi0"]
+
+[ext_resource type="Script" uid="uid://bjxdtrnah8od0" path="res://scripts/run1/Desktop.gd" id="1_6axox"]
+
+[node name="Desktop" type="Control" unique_id=566528082]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_6axox")
+work_button_path = NodePath("Monitor/Layout/Icons/WorkSlot/Btn")
+dating_button_path = NodePath("Monitor/Layout/Icons/DatingSlot/Btn")
+mail_button_path = NodePath("Monitor/Layout/Icons/MailSlot/Btn")
+
+[node name="Monitor" type="ColorRect" parent="." unique_id=1792895310]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 40.0
+offset_right = -60.0
+offset_bottom = -40.0
+color = Color(0.82, 0.82, 0.84, 1)
+
+[node name="Layout" type="VBoxContainer" parent="Monitor" unique_id=803554834]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+
+[node name="Icons" type="HBoxContainer" parent="Monitor/Layout" unique_id=2127478786]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="WorkSlot" type="Control" parent="Monitor/Layout/Icons" unique_id=359545147]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/Icons/WorkSlot" unique_id=894119642]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.36, 0.66, 0.86, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/Icons/WorkSlot" unique_id=2042786767]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Работа"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/Icons/WorkSlot" unique_id=1647016516]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Sp1" type="Control" parent="Monitor/Layout/Icons" unique_id=1007607978]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="DatingSlot" type="Control" parent="Monitor/Layout/Icons" unique_id=1391868464]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/Icons/DatingSlot" unique_id=789341411]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.85, 0.4, 0.65, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/Icons/DatingSlot" unique_id=682255808]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Дейтинг"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/Icons/DatingSlot" unique_id=1515647934]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Sp2" type="Control" parent="Monitor/Layout/Icons" unique_id=70185766]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="MailSlot" type="Control" parent="Monitor/Layout/Icons" unique_id=975673711]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+
+[node name="Rect" type="ColorRect" parent="Monitor/Layout/Icons/MailSlot" unique_id=756439799]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.45, 0.78, 0.4, 1)
+
+[node name="Caption" type="Label" parent="Monitor/Layout/Icons/MailSlot" unique_id=696000615]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Почта"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Btn" type="Button" parent="Monitor/Layout/Icons/MailSlot" unique_id=1949121609]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="Hint" type="Label" parent="Monitor/Layout" unique_id=1114427150]
+modulate = Color(0.25, 0.25, 0.27, 1)
+layout_mode = 2
+text = "Открой программу, чтобы заняться делами"
+horizontal_alignment = 2

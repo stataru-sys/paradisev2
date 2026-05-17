@@ -4,3 +4,36 @@
 
 [node name="MainMenu" type="Node" unique_id=1108586757]
 script = ExtResource("1_yqorp")
+start_button_path = NodePath("StartBtn")
+
+[node name="Bg" type="ColorRect" parent="." unique_id=1468376632]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="Title" type="Label" parent="." unique_id=192629137]
+modulate = Color(0.85, 1, 0.85, 1)
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.3
+anchor_right = 0.5
+anchor_bottom = 0.3
+offset_left = -240.0
+offset_top = -40.0
+offset_right = 240.0
+offset_bottom = 40.0
+text = "Paradise 2033"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartBtn" type="Button" parent="." unique_id=1119194694]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_right = 120.0
+offset_bottom = 56.0
+text = "Начать Run 1"

@@ -1,9 +1,15 @@
 extends Node
-## main_scene проекта. Сейчас — заглушка под Slice 0: подтверждает что autoload-ы
-## загрузились и сцена ready без ошибок.
-##
-## Slice 1+ — здесь появятся: чтение сейва (SaveService autoload), кнопка
-## "New Game" → SceneTree.change_scene_to_file("res://scenes/MainScene.tscn").
+## main_scene проекта. Slice 0 — заглушка с print'ом. Slice 1 — кнопка перехода в Run1.
+
+@export var start_button_path: NodePath
 
 func _ready() -> void:
 	print("[MainMenu] ready — Paradise 2033 boot OK")
+	if start_button_path.is_empty():
+		return
+	var btn: Button = get_node(start_button_path) as Button
+	if btn != null:
+		btn.pressed.connect(_on_start_pressed)
+
+func _on_start_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/Run1.tscn")

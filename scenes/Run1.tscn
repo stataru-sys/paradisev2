@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://djgf1hv5cjbbc"]
+
+[ext_resource type="Script" uid="uid://caa5gj273mecc" path="res://scripts/run1/Run1.gd" id="1_qfbim"]
+
+[node name="Run1" type="Control" unique_id=525681926]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_qfbim")
+program_host_path = NodePath("Layout/ProgramHost")
+earned_label_path = NodePath("Layout/NavBar/Row/EarnedLabel")
+
+[node name="Background" type="ColorRect" parent="." unique_id=236709789]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.12, 0.12, 0.14, 1)
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=121502738]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="NavBar" type="PanelContainer" parent="Layout" unique_id=143344834]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Layout/NavBar" unique_id=1081997977]
+layout_mode = 2
+
+[node name="TabWork" type="Label" parent="Layout/NavBar/Row" unique_id=235793346]
+layout_mode = 2
+text = "Работа"
+
+[node name="S1" type="VSeparator" parent="Layout/NavBar/Row" unique_id=1599747286]
+layout_mode = 2
+
+[node name="TabTinder" type="Label" parent="Layout/NavBar/Row" unique_id=43828792]
+layout_mode = 2
+text = "Tinder"
+
+[node name="S2" type="VSeparator" parent="Layout/NavBar/Row" unique_id=430227829]
+layout_mode = 2
+
+[node name="TabPets" type="Label" parent="Layout/NavBar/Row" unique_id=1835658176]
+layout_mode = 2
+text = "Питомцы"
+
+[node name="S3" type="VSeparator" parent="Layout/NavBar/Row" unique_id=1248780520]
+layout_mode = 2
+
+[node name="TabFood" type="Label" parent="Layout/NavBar/Row" unique_id=1976162313]
+layout_mode = 2
+text = "Пожрать"
+
+[node name="S4" type="VSeparator" parent="Layout/NavBar/Row" unique_id=988986752]
+layout_mode = 2
+
+[node name="TabHome" type="Label" parent="Layout/NavBar/Row" unique_id=962409688]
+layout_mode = 2
+text = "Уход за домом"
+
+[node name="Spacer" type="Control" parent="Layout/NavBar/Row" unique_id=1542249455]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EarnedLabel" type="Label" parent="Layout/NavBar/Row" unique_id=2054181797]
+layout_mode = 2
+text = "$0"
+
+[node name="ProgramHost" type="Control" parent="Layout" unique_id=1967306364]
+layout_mode = 2
+size_flags_vertical = 3

@@ -1,0 +1,122 @@
+[gd_scene format=3 uid="uid://c7vyf6d8mcs6p"]
+
+[ext_resource type="Script" uid="uid://cqvdpuj6mi8at" path="res://scripts/run1/MailProgram.gd" id="1_v43y3"]
+
+[node name="MailProgram" type="Control" unique_id=1642188573]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_v43y3")
+back_button_path = NodePath("Margin/Layout/TopBar/BackBtn")
+matches_box_path = NodePath("Margin/Layout/Body/Left/LeftScroll/MatchesBox")
+empty_label_path = NodePath("Margin/Layout/Empty")
+body_path = NodePath("Margin/Layout/Body")
+dialog_name_path = NodePath("Margin/Layout/Body/Right/RightMargin/ChatLayout/ChatHeader/Name")
+sympathy_bar_path = NodePath("Margin/Layout/Body/Right/RightMargin/ChatLayout/ChatHeader/Sympathy")
+dialog_box_path = NodePath("Margin/Layout/Body/Right/RightMargin/ChatLayout/DialogScroll/DialogBox")
+reply_buttons_box_path = NodePath("Margin/Layout/Body/Right/RightMargin/ChatLayout/Replies")
+outcome_label_path = NodePath("Margin/Layout/Body/Right/RightMargin/ChatLayout/Outcome")
+
+[node name="Bg" type="ColorRect" parent="." unique_id=1047331648]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.78, 0.32, 0.55, 1)
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=2023903727]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="Layout" type="VBoxContainer" parent="Margin" unique_id=158938162]
+layout_mode = 2
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/Layout" unique_id=1299817991]
+layout_mode = 2
+
+[node name="BackBtn" type="Button" parent="Margin/Layout/TopBar" unique_id=670095102]
+layout_mode = 2
+text = "← Назад"
+
+[node name="Sp" type="Control" parent="Margin/Layout/TopBar" unique_id=691176023]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Header" type="Label" parent="Margin/Layout/TopBar" unique_id=1359413619]
+layout_mode = 2
+text = "Почта"
+
+[node name="Empty" type="Label" parent="Margin/Layout" unique_id=404506197]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Body" type="HBoxContainer" parent="Margin/Layout" unique_id=278387409]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Left" type="PanelContainer" parent="Margin/Layout/Body" unique_id=1072843513]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+
+[node name="LeftScroll" type="ScrollContainer" parent="Margin/Layout/Body/Left" unique_id=1008496358]
+layout_mode = 2
+
+[node name="MatchesBox" type="VBoxContainer" parent="Margin/Layout/Body/Left/LeftScroll" unique_id=1439729677]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SpL" type="Control" parent="Margin/Layout/Body" unique_id=1173696519]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+
+[node name="Right" type="PanelContainer" parent="Margin/Layout/Body" unique_id=2057877210]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RightMargin" type="MarginContainer" parent="Margin/Layout/Body/Right" unique_id=2028119797]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="ChatLayout" type="VBoxContainer" parent="Margin/Layout/Body/Right/RightMargin" unique_id=81216552]
+layout_mode = 2
+
+[node name="ChatHeader" type="HBoxContainer" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout" unique_id=1211453850]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout/ChatHeader" unique_id=270337834]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "—"
+
+[node name="Sympathy" type="ProgressBar" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout/ChatHeader" unique_id=1488141391]
+custom_minimum_size = Vector2(160, 24)
+layout_mode = 2
+value = 50.0
+show_percentage = false
+
+[node name="DialogScroll" type="ScrollContainer" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout" unique_id=529177621]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DialogBox" type="VBoxContainer" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout/DialogScroll" unique_id=1812173416]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Outcome" type="Label" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout" unique_id=1513491228]
+modulate = Color(1, 1, 0.7, 1)
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Replies" type="HBoxContainer" parent="Margin/Layout/Body/Right/RightMargin/ChatLayout" unique_id=1753607030]
+layout_mode = 2

@@ -1,0 +1,116 @@
+[gd_scene format=3 uid="uid://ch5un4etdpvti"]
+
+[ext_resource type="Script" uid="uid://cr8ulp2yl555h" path="res://scripts/run1/DatingProgram.gd" id="1_4621o"]
+
+[node name="DatingProgram" type="Control" unique_id=2126757148]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_4621o")
+back_button_path = NodePath("Margin/Layout/TopBar/BackBtn")
+like_button_path = NodePath("Margin/Layout/Center/LikeBtn")
+dislike_button_path = NodePath("Margin/Layout/Center/DizBtn")
+name_label_path = NodePath("Margin/Layout/Center/CardWrap/CardLayout/CardMargin/CardInner/NameLabel")
+bio_label_path = NodePath("Margin/Layout/Center/CardWrap/CardLayout/CardMargin/CardInner/BioLabel")
+work_hint_path = NodePath("Margin/Layout/Bottom/WorkHint")
+match_toast_path = NodePath("Margin/Layout/Bottom/MatchToast")
+swipe_counter_path = NodePath("Margin/Layout/TopBar/SwipeCounter")
+
+[node name="Bg" type="ColorRect" parent="." unique_id=610580351]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.78, 0.32, 0.55, 1)
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1449397812]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="Layout" type="VBoxContainer" parent="Margin" unique_id=659798437]
+layout_mode = 2
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/Layout" unique_id=1406535240]
+layout_mode = 2
+
+[node name="BackBtn" type="Button" parent="Margin/Layout/TopBar" unique_id=1436834902]
+layout_mode = 2
+text = "← Назад"
+
+[node name="Sp" type="Control" parent="Margin/Layout/TopBar" unique_id=844026216]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SwipeCounter" type="Label" parent="Margin/Layout/TopBar" unique_id=15195639]
+layout_mode = 2
+text = "Свайпов: 0"
+
+[node name="Center" type="HBoxContainer" parent="Margin/Layout" unique_id=1707412643]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="DizBtn" type="Button" parent="Margin/Layout/Center" unique_id=203162730]
+custom_minimum_size = Vector2(120, 200)
+layout_mode = 2
+text = "Диз"
+
+[node name="CardWrap" type="PanelContainer" parent="Margin/Layout/Center" unique_id=913583166]
+custom_minimum_size = Vector2(360, 360)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Card" type="ColorRect" parent="Margin/Layout/Center/CardWrap" unique_id=512285290]
+layout_mode = 2
+color = Color(0.86, 0.86, 0.88, 1)
+
+[node name="CardLayout" type="VBoxContainer" parent="Margin/Layout/Center/CardWrap" unique_id=1325203282]
+layout_mode = 2
+
+[node name="CardMargin" type="MarginContainer" parent="Margin/Layout/Center/CardWrap/CardLayout" unique_id=1692357019]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="CardInner" type="VBoxContainer" parent="Margin/Layout/Center/CardWrap/CardLayout/CardMargin" unique_id=1614614756]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="Margin/Layout/Center/CardWrap/CardLayout/CardMargin/CardInner" unique_id=1868100140]
+modulate = Color(0.1, 0.1, 0.1, 1)
+layout_mode = 2
+text = "Имя"
+horizontal_alignment = 1
+
+[node name="BioLabel" type="Label" parent="Margin/Layout/Center/CardWrap/CardLayout/CardMargin/CardInner" unique_id=486331623]
+modulate = Color(0.2, 0.2, 0.2, 1)
+layout_mode = 2
+size_flags_vertical = 3
+text = "..."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LikeBtn" type="Button" parent="Margin/Layout/Center" unique_id=1821940500]
+custom_minimum_size = Vector2(120, 200)
+layout_mode = 2
+text = "Лайк"
+
+[node name="Bottom" type="HBoxContainer" parent="Margin/Layout" unique_id=2013635916]
+layout_mode = 2
+
+[node name="MatchToast" type="Label" parent="Margin/Layout/Bottom" unique_id=2101515323]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Матч!"
+
+[node name="WorkHint" type="Label" parent="Margin/Layout/Bottom" unique_id=1999647577]
+layout_mode = 2
+text = "Пора работать"
+horizontal_alignment = 2
