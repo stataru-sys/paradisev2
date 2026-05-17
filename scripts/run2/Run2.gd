@@ -8,6 +8,7 @@ const SCENE_PATHS: Dictionary = {
 	"work": "res://scenes/run1/WorkProgram.tscn",
 	"dating": "res://scenes/run1/DatingProgram.tscn",
 	"mail": "res://scenes/run1/MailProgram.tscn",
+	"shop": "res://scenes/run2/ShopApp.tscn",
 }
 const DAY_SUMMARY_SCENE: String = "res://scenes/run1/DaySummary.tscn"
 
@@ -39,6 +40,8 @@ const DAY_SUMMARY_SCENE: String = "res://scenes/run1/DaySummary.tscn"
 var _day_summary_open: bool = false
 
 func _ready() -> void:
+	if not _run.has_unlock("shop"):
+		_run.unlock("shop")
 	GameEvents.program_open_requested.connect(_on_program_open_requested)
 	GameEvents.program_closed.connect(_on_program_closed)
 	GameEvents.work_day_finished.connect(_on_work_day_finished)

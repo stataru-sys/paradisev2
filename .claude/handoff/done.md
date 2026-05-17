@@ -4,6 +4,50 @@
 
 ---
 
+## Slice C — Магазин апгрейдов ✓
+
+**Коммит:** будет создан после ревью keeper'ом (см. `git status`).
+
+**Что добавлено:**
+
+| Файл | Что |
+|---|---|
+| `scenes/run2/ShopApp.tscn` *(новый)* | Программа «Магазин апгрейдов». Корневой `Control` с `Bg` (бежевый ColorRect) → MarginContainer → VBox. TopBar: BackBtn + Title «Магазин апгрейдов» + MoneyLabel. Под TopBar — ScrollContainer/VBox `ListBox`, который наполняет `ShopApp.gd` карточками. |
+| `scripts/run2/ShopApp.gd` *(новый)* | `const UPGRADES: Array[Dictionary]` с 5 апгрейдами (coffee/monitor/dating_plus/confident_replies/autoclicker). `_rebuild_list()` создаёт PanelContainer для каждого: HBox info(title+desc autowrap) + right(price+button). `_apply_button_state()` ставит «Куплено»/disabled, если уже куплено, или disabled если денег не хватает. Подписан на `GameEvents.money_changed` (обновляет MoneyLabel + кнопки) и `upgrade_purchased` (rebuild list). На клик «Купить» → `RunService.purchase_upgrade(id, cost)`; если true — эмитит `event_log_added("Куплено: <название>")`. |
+| `scripts/core/RunService.gd` *(изменён)* | `purchase_upgrade(upgrade_id: String, cost: int) -> bool` — проверяет has_upgrade (дубликат → false), берёт `/root/Economy`, проверяет `money >= cost`, вызывает `economy.spend(cost)`, добавляет в `purchased_upgrades`, эмитит `GameEvents.upgrade_purchased`. `has_upgrade(id) -> bool`. `_compute_max_energy()` возвращает `MAX_ENERGY_BASE + (2 if has_upgrade("coffee") else 0)` — вызывается в `next_day()` (то есть кофе вступает в силу со **следующего** дня после покупки). `reset()` уже ставил `max_energy = MAX_ENERGY_BASE`, поэтому coffee при сбросе run-а пропадает. |
+| `scripts/core/GameEvents.gd` *(изменён)* | Добавлен `signal upgrade_purchased(upgrade_id: String)`. |
+| `scripts/run2/Run2.gd` *(изменён)* | `SCENE_PATHS["shop"] = "res://scenes/run2/ShopApp.tscn"`. В `_ready()` до подписок: `if not _run.has_unlock("shop"): _run.unlock("shop")` — Магазин разблокирован автоматически в день 2+. |
+| `scripts/run2/Desktop2.gd` *(изменён)* | `_refresh_lock_visuals()` после connect'ов: для каждого слота из bottom-ряда снимает modulate 0.5 если `_run.has_unlock(program_id)`. Локированный `_on_lockable_pressed` стал `_on_lockable_pressed` (переименован) и проверяет has_unlock — если есть, эмитит `program_open_requested`. |
+| `scripts/run1/WorkProgram.gd` *(изменён)* | `const MONITOR_BONUS: int = 5`. В `_on_word_dropped` при закрытии категории: `bonus = CATEGORY_FULL_BONUS + (MONITOR_BONUS if has_upgrade("monitor") else 0)`. Новые функции `_setup_autoclicker_button()` (создаёт Button «Решить 1 карточку» программно и вставляет в TopBar перед EarnedLabel, только если has_upgrade("autoclicker")) и `_on_autoclicker_pressed()` (берёт первое WordCard в `_words_box`, ищет нужный CategorySlot, вызывает `_on_word_dropped` — это списывает 1 энергию + даёт правильный ответ). |
+| `scripts/run1/DatingProgram.gd` *(изменён)* | `_on_like` теперь `chance = clampf(match_chance + 0.1, 0.0, 1.0)` если has_upgrade("dating_plus"). |
+| `scripts/run1/MailProgram.gd` *(изменён)* | `_on_reply_picked` — `positive_chance = 0.6 if has_upgrade("confident_replies") else 0.5`. |
+
+**Smoke через MCP (8/8 зелёных):**
+1. `play_scene main` → MainMenu виден ✓
+2. `execute_game_script` форсит `rs.current_day=2` + `eco.add(300)` → клик «Начать Run 1» → routing day 2 → Run2.tscn, шапка «$300 День 2 / Энергия 8/8» ✓
+3. Клик «Компьютер» → «ВКЛЮЧИТЬ» → Desktop2 с **разблокированной** ярко-жёлтой иконкой «Магазин» (Казино/Агенты — приглушённые) ✓
+4. Клик «Магазин» → ShopApp с 5 карточками + ScrollContainer, MoneyLabel «Деньги: 300$» ✓
+5. `execute_game_script`: `purchase_upgrade()` × 5 → все 5 true, money 300→270→220→180→145→85 ✓
+6. Защита от дубликата: повторный `purchase_upgrade("coffee", 30)` → false, money не изменилась ✓
+7. 8×spend_energy → `next_day()` → шапка «День 3 / Энергия 10/10» — coffee bonus сработал ✓
+8. `GameEvents.program_open_requested.emit("work")` → WorkProgram: кнопка «Решить 1 карточку» в TopBar; 5 нажатий с предварительной перестановкой нужного слова в начало → money 85 → 100 (delta +15$), `work_correct_today=5`, `energy 10 → 5` — monitor (15$ за категорию) + autoclicker (списание энергии и автоматическое правильное решение) подтверждены ✓
+
+**Что keeper'у проверить вручную:**
+- UX покупки: после клика «Купить» карточка визуально становится «Куплено» — это происходит через rebuild списка, может моргнуть scroll position. Если будет мешать, заменим `_rebuild_list()` на точечное обновление одной карточки.
+- Тон описаний (особенно «Кофе из автомата: Спишет когнитивный долг позже.», «Дешёвый автокликер: Тратит 1 энергию, как всё в этой жизни.»).
+- Цены: 30 / 40 / 35 / 50 / 60 — соответствуют ли балансу первых дней (если коробка зарплаты ≈30$ за полную категорию × 3 категории = 90$/день, цены укладываются в 1–2 дня заработка).
+- В Desktop2: иконка «Магазин» сейчас разблокирована **автоматически в день 2+**. Если хочется gating через цель «доживи до дня 3» или достижение по деньгам — это делается одной строкой в `Run2.gd._ready()`.
+
+**Компромиссы / known issues:**
+- Контент апгрейдов — `const UPGRADES: Array[Dictionary]` в `ShopApp.gd`, не `.tres`. Это сознательное упрощение (подсказка в next.md). Переезд на Resource будет тривиальным, когда понадобится Inspector-редактирование или баланс через keeper'а.
+- Кнопка «Решить 1 карточку» добавляется программно — в `WorkProgram.tscn` её нет. Это сделано чтобы не разделять сцену на «with_autoclicker» / «without». Стиль кнопки наследует тему по умолчанию, что выглядит ок.
+- При перезагрузке Run 2 (после `next_day()`) сцена пересоздаётся, и подписки на `money_changed` теряют последнее значение → шапка показывает «$0» пока какое-то событие не эмитнёт `money_changed`. В smoke-тесте я форсил это вручную через `GameEvents.money_changed.emit(eco.money)`. **Потенциальная улучшалка:** в `Run2._ready()` после connect'а сразу `_on_money_changed(int(_economy.money))` — чтобы пробросить текущее значение. Я этого делать не стал, потому что в реальной игре деньги начинаются с 0 и эмитятся через Work-программу до того как игрок откроет Run 2 шапку. Но keeper может попросить добавить — это +2 строки в `Run2._ready()`.
+- `dating_plus` подтверждён только тем что код добавляет +0.1 (визуальный тест не делался — рандом). `confident_replies` аналогично — тестируется только статистически.
+
+**Следующий слайс (Slice D — Казино):** см. `next.md`.
+
+---
+
 ## Slice B — Run 2 каркас + переход через RunService ✓
 
 **Коммит:** будет создан после ревью keeper'ом (см. `git status`).

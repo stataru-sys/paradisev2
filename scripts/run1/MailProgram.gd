@@ -112,7 +112,8 @@ func _on_reply_picked(phrase: String) -> void:
 	if int(_run.energy) <= 0:
 		return
 	_append_line("Ты", phrase)
-	var positive: bool = randf() < 0.5
+	var positive_chance: float = 0.6 if _run.has_upgrade("confident_replies") else 0.5
+	var positive: bool = randf() < positive_chance
 	var sympathy: float = float(_run.sympathies.get(_current_id, 0.5))
 	sympathy += SYMPATHY_STEP if positive else -SYMPATHY_STEP
 	sympathy = clampf(sympathy, 0.0, 1.0)

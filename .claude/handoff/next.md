@@ -12,8 +12,8 @@
 |---|---|---|---|
 | A | **Run 1 как первый день** + RunService + MainScene-router | Энергия, day topbar, цели, DaySummary, end-of-day, autoload-сервис состояния run-а, роутер сцен | **✓ закрыт** |
 | B | **Run 2 каркас** + переход через RunService | Run2.tscn с 6 иконками Desktop'а (3 рабочих + 3 заглушки), `next_day()` в роутере | **✓ закрыт** |
-| C | **Магазин апгрейдов** | ShopApp с 5 апгрейдами (кофе / монитор / дейтинг+ / курс ответов / автокликер), интеграция эффектов в Economy/Work/Dating/Mail | **активный** |
-| D | **Казино** | CasinoApp с 3 ставками (10/25/50), 5 исходов (45/30/15/8/2%), история последних 5 | pending |
+| C | **Магазин апгрейдов** | ShopApp с 5 апгрейдами (кофе / монитор / дейтинг+ / курс ответов / автокликер), интеграция эффектов в Economy/Work/Dating/Mail | **✓ закрыт** |
+| D | **Казино** | CasinoApp с 3 ставками (10/25/50), 5 исходов (45/30/15/8/2%), история последних 5 | **активный** |
 | E | **ИИ-агенты** | AgentShopApp с 4 агентами (Стажёр-GPT / Людмила / Ответчик-3000 / Мини-делегатор), применение в начале дня и при действиях, побочки | pending |
 | F | **Event log + Day Summary Run 2 + полировка** | EventLog widget, подписка на сигналы из всех систем, расширенный DaySummary с разделом «самое абсурдное событие», 4 вердикта | pending |
 
@@ -34,68 +34,71 @@
 
 ---
 
-## Что готово после Slice B
+## Что готово после Slice C
 
-- `scenes/Run2.tscn` + `scripts/run2/Run2.gd` — копия Run1 с тем же routing-поведением, но `SCENE_PATHS["desktop"]` указывает на Desktop2. StartOverlay hint: «Новый день. Опять компьютер.».
-- `scenes/run2/Desktop2.tscn` + `scripts/run2/Desktop2.gd` — 6 иконок в 2 ряда (VBox → HBox top + GapMid + HBox bottom). Нижние 3 (Shop/Casino/Agents) с `modulate Color(1,1,1,0.5)`. При клике на locked-кнопку — проверка `_run.has_unlock(id)`; если нет, эмитит `GameEvents.event_log_added("Откроется позже. Тебе пока хватает проблем.")`.
-- `scripts/ui/MainScene.gd` — `_ready()` switch: `day <= 1 → Run1.tscn`, `day >= 2 → Run2.tscn`.
-- `RunService.unlocks: Array[String]` + `unlock(id)` + `has_unlock(id)` + сброс в `reset()`. Slice C/D/E будут вызывать `unlock("shop"|"casino"|"agents")`.
-- `Run1State.gd` удалён вместе с `.uid`. Из Desktop.gd / WorkProgram.gd / DatingProgram.gd / MailProgram.gd убраны no-op `attach_state()`.
+- `scenes/run2/ShopApp.tscn` + `scripts/run2/ShopApp.gd` — программа «Магазин апгрейдов». 5 карточек (PanelContainer → HBox: info + price/button), ScrollContainer для длинных списков. Список апгрейдов — `const UPGRADES: Array[Dictionary]` прямо в скрипте (на момент 5 элементов это короче, чем 5 `.tres`).
+- `RunService.purchase_upgrade(id, cost) -> bool` — проверяет дубликат + достаток денег через `/root/Economy`, списывает, добавляет в `purchased_upgrades`, эмитит `GameEvents.upgrade_purchased`. `has_upgrade(id) -> bool`. `_compute_max_energy()` = `MAX_ENERGY_BASE + (2 if has_upgrade("coffee") else 0)` — вызывается в `next_day()`. То есть кофе вступает в силу со **следующего** дня после покупки.
+- `Run2.gd` — `SCENE_PATHS["shop"]` + auto-`_run.unlock("shop")` в `_ready()`.
+- `Desktop2.gd` — `_refresh_lock_visuals()` снимает `modulate(1,1,1,0.5)` со слота, если апгрейд разблокирован (`has_unlock(id)`).
+- Эффекты подключены: `WorkProgram` — `monitor` даёт +5$ к бонусу за полную категорию (10 → 15$); `autoclicker` рисует кнопку «Решить 1 карточку» в TopBar и при нажатии берёт первое слово из `_words_box`, ищет правильную категорию, эмулирует drop. `DatingProgram._on_like` — `dating_plus` накидывает +0.1 к `match_chance`. `MailProgram._on_reply_picked` — `confident_replies` поднимает positive-шанс с 0.5 до 0.6.
+- `GameEvents.upgrade_purchased(upgrade_id)` — новый сигнал.
 
 ---
 
-## Текущий слайс — C (Магазин апгрейдов)
+## Текущий слайс — D (Казино)
 
 ### Goal
-Реализовать ShopApp (Магазин апгрейдов) как полноценную программу Run 2. Контент: 5 апгрейдов с эффектами на Economy/Work/Dating/Mail. Покупка через Run-стейт; повторная покупка одного апгрейда невозможна. Slice C **только** разблокирует «shop» — Казино и Агенты остаются locked до D/E.
+Реализовать CasinoApp как полноценную программу Run 2. Контент: 3 уровня ставки (10/25/50), кнопка «Крутить», 5 исходов с разным шансом + 5-строчная история. Slice D разблокирует `casino`. Магазин и Агенты остаются как есть (Магазин уже разблокирован в C, Агенты locked до E).
 
 ### Files to touch
 
 **Создать:**
-- `scripts/data/UpgradeData.gd` — `Resource` с полями `id: String`, `name: String`, `description: String`, `cost: int`, `effect_id: String`, `@export` всё. `class_name UpgradeData`.
-- `resources/upgrades/*.tres` × 5 — конкретные апгрейды:
-  - `coffee` — «Кофе из автомата», 30$, +2 max_energy со следующего дня.
-  - `monitor` — «Второй монитор», 50$, +5$ за полную категорию в Work.
-  - `dating_plus` — «Подписка дейтинг+», 40$, +0.1 к match_chance в Dating.
-  - `confident_replies` — «Курс уверенных ответов», 35$, +0.1 к шансу positive-реакции в Mail.
-  - `autoclicker` — «Дешёвый автокликер», 60$, кнопка «Решить 1 карточку» в Work-программе.
-- `scenes/run2/ShopApp.tscn` + `scripts/run2/ShopApp.gd` — программа, которую `Run2.open_program("shop")` вставит в monitor_screen. Layout: «← Назад» (program_closed) + ScrollContainer/VBox с 5 карточками апгрейдов (название / описание / цена / кнопка «Купить»). После покупки карточка disabled + «Куплено».
+- `scenes/run2/CasinoApp.tscn` + `scripts/run2/CasinoApp.gd` — программа казино. Layout: TopBar («← Назад» + Title «Казино «Парадайз»» + MoneyLabel). Body: слева — 3 кнопки ставки (10$ / 25$ / 50$), кнопка «Крутить» (disabled если ставка не выбрана / money < bet / energy ≤ 0), Label с текущим выбором ставки. Справа — VBox-история «История последних 5 круток» (5 строк, FIFO; новые сверху или снизу — на выбор).
 
 **Изменить:**
-- `scripts/core/RunService.gd` — `purchase_upgrade(upgrade: UpgradeData) -> bool` (проверка денег через `/root/Economy`, добавление в `purchased_upgrades`, эмит `upgrade_purchased`). `has_upgrade(id) -> bool`. На `next_day()` — если в `purchased_upgrades` есть `coffee`, `max_energy += 2` (но только однократно — заведи флаг `coffee_applied` или просто пересчитывай max_energy каждый next_day от base + bonus_from_upgrades). При `reset()` — `max_energy = MAX_ENERGY_BASE`.
-- `scripts/core/GameEvents.gd` — `signal upgrade_purchased(upgrade_id: String)`.
-- `scripts/run2/Run2.gd` — в Slice C при загрузке Run 2 на день 2 автоматически разблокировать «shop»: в `_ready()` если `not _run.has_unlock("shop"): _run.unlock("shop")`. Альтернатива (если не хочется auto-unlock) — оставить как сейчас и keeper в `next.md` для D пропишет аналогично для casino. **Рекомендуется auto-unlock в Slice C, держит UX простым.** Также — поправить `SCENE_PATHS["shop"] = "res://scenes/run2/ShopApp.tscn"`.
-- `scripts/run1/WorkProgram.gd` — если `_run.has_upgrade("monitor")`, бонус за полную категорию `15$` вместо `10$`. Если `_run.has_upgrade("autoclicker")`, в правой части UI кнопка «Решить 1 карточку» (тратит 1 энергию, выбирает первую word_card и сама дропает в правильную категорию).
-- `scripts/run1/DatingProgram.gd` — если `_run.has_upgrade("dating_plus")`, в `_on_like` шанс матча = `clampf(match_chance + 0.1, 0.0, 1.0)`.
-- `scripts/run1/MailProgram.gd` — если `_run.has_upgrade("confident_replies")`, `var positive: bool = randf() < 0.6` (вместо 0.5).
+- `scripts/core/RunService.gd` — методы `register_casino_win(amount: int)` и `register_casino_loss(amount: int)` (тривиально — увеличить `casino_won_today` / `casino_lost_today`). Поля уже есть из Slice A.
+- `scripts/run2/Run2.gd` — `SCENE_PATHS["casino"] = "res://scenes/run2/CasinoApp.tscn"` + в `_ready()` `_run.unlock("casino")` (по аналогии с shop, держит UX простым).
+
+### Логика крутки
+
+```
+outcomes = [
+  {"weight": 0.45, "text": "Ничего. Просто ничего.", "multiplier": 0},
+  {"weight": 0.30, "text": "Вернули ставку. Спасибо. Наверное.", "multiplier": 1},
+  {"weight": 0.15, "text": "x2. Сегодня ты молодец.", "multiplier": 2},
+  {"weight": 0.08, "text": "x3. Это даже немного подозрительно.", "multiplier": 3},
+  {"weight": 0.02, "text": "x7. Ты сорвал джекпот. Лучше уходи прямо сейчас.", "multiplier": 7},
+]
+```
+
+Распределение: random `randf()` → накопительный поиск по выбранным исходам (порог 0.45 → 0.75 → 0.90 → 0.98 → 1.0). Расчёт: `delta = bet * multiplier - bet`. Если 0 — проигрыш на `bet`. Если 1 — нейтрально (вернули). Если 2/3/7 — выигрыш `delta`.
+
+Применение:
+1. `Economy.spend(bet)` (списать ставку).
+2. Если `multiplier > 0` — `Economy.add(bet * multiplier)` (вернуть/выиграть).
+3. `_run.register_casino_win(delta)` если delta > 0, иначе `_run.register_casino_loss(bet)` при multiplier=0.
+4. `_run.spend_energy(1)`.
+5. История получает строку формата: `"Ставка 25$ → x2. Сегодня ты молодец. (+25$)"`.
+6. `GameEvents.event_log_added.emit("Казино: <текст исхода> (<delta>$)")`.
 
 ### Acceptance
-- [ ] В Run 2, день 2: на Desktop2 иконка «Магазин» **больше не приглушена**, при клике открывается ShopApp.
-- [ ] В ShopApp видны 5 апгрейдов, кнопка «Купить» disabled если money < cost.
-- [ ] Покупка списывает деньги через Economy, апгрейд переходит в «Куплено», карточка disabled.
-- [ ] «Кофе из автомата» куплен в день 2 → в день 3 шапка показывает «Энергия 10/10».
-- [ ] «Второй монитор» — в Work закрытие полной категории даёт 15$ вместо 10$.
-- [ ] «Подписка дейтинг+» — `match_chance` для всех профилей фактически выше на 0.1.
-- [ ] «Курс уверенных ответов» — в Mail позитивных реакций становится заметно больше (визуально, не строго проверяется).
-- [ ] «Дешёвый автокликер» — кнопка появляется в Work, при клике 1 правильная карточка решается, энергия −1.
-- [ ] Smoke: купить «Кофе» в день 2 → дожить до конца → день 3 имеет max_energy=10.
+- [ ] В Run 2 day 2+: иконка «Казино» больше не приглушена, открывает CasinoApp.
+- [ ] 3 кнопки ставок включаются/выключаются по `Economy.money >= bet`.
+- [ ] Выбор ставки + клик «Крутить» → списывается ставка, появляется новая строка в истории, обновляется money.
+- [ ] Энергия −1 за крутку. При energy=0 «Крутить» disabled.
+- [ ] История содержит не больше 5 последних круток.
+- [ ] Распределение шансов 45/30/15/8/2 фактически (через 100+ круток на стат).
+- [ ] casino_won_today/casino_lost_today обновляются (видно через `RunService.casino_won_today` в логе).
 
-### Out of scope (Slice C не делает)
-- Казино / Агенты (D / E).
-- EventLog (F).
-- Перевод цен/эффектов в .tres файлы (можно держать Dictionary в `ShopApp.gd` или `RunService.gd`, как удобнее).
+### Out of scope
+- DaySummary не показывает казино-сводку — оставлено для Slice F.
+- Сохранение истории между днями — не нужно, история — внутри-сценный буфер.
+- Анимации крутки барабана — оставлено на потом.
 
 ### Подсказки
-- Если не хочется тратить время на 5 файлов `.tres` — допускается держать словарь апгрейдов прямо в `ShopApp.gd` как `const UPGRADES: Array[Dictionary] = [...]`. Это короче, и переезд на `.tres` будет тривиален когда понадобится.
-- `Economy.add(-cost)` есть. Проверка `Economy.money >= cost` — посмотри scripts/core/Economy.gd, при необходимости расширь его геттером.
-- Кнопка «← Назад» — `GameEvents.program_closed.emit()`. Это уже работает через Run2.gd.
-
----
-
-## Заготовки следующих слайсов
-
-### Slice D — Казино
-`CasinoApp.tscn` + контроллер. 3 кнопки ставок (10/25/50, отключаются если money < bet). Кнопка «Крутить» — randf() против таблицы (45% проигрыш / 30% возврат / 15% x2 / 8% x3 / 2% x7). Тексты исходов по ТЗ. История 5 — VBox с лейблами. `_run.spend_energy(1)` на крутку. `_run.casino_won_today/lost_today` для статистики.
+- Выбор ставки можно держать как `_selected_bet: int = -1`, при клике на кнопку ставки `_selected_bet = 10|25|50` + визуально подсветить выбранную (`modulate` или ColorRect-индикатор).
+- Чтобы не сосчитать вероятности руками — `roll = randf()`, потом `if roll < 0.45: outcome=0 elif roll < 0.75: outcome=1 ...`. Список thresholds можно сгенерировать из weights в `_ready()`.
+- История: `VBoxContainer` + `_push_history(line: String)`. Когда `get_child_count() > 5` — `get_child(0).queue_free()`.
 
 ### Slice E — ИИ-агенты
 `scripts/data/AgentData.gd` (Resource). 4 агента: Стажёр-GPT (60$, 1 карточка Work авто, 25% ошибка), Людмила (80$, +0.15 match_chance, иногда снижает симпатию), Ответчик-3000 (100$, 1 авто-ответ в Mail, 60% успех), Мини-делегатор (120$, +10$ пассивно в начале дня, 10% хаос-задача отнимает энергию). `AgentShopApp.tscn` с 2 секциями (Магазин / Мои агенты). `RunService.active_agents`, метод `apply_agents_for_new_day()` — вызывается из `next_day()`. Сигнал `event_log_added` для каждого срабатывания.

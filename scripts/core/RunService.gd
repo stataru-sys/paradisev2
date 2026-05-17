@@ -129,6 +129,7 @@ func _finish_day() -> void:
 
 func next_day() -> void:
 	current_day += 1
+	max_energy = _compute_max_energy()
 	energy = max_energy
 	money_earned_today = 0
 	work_errors_today = 0
@@ -140,6 +141,31 @@ func next_day() -> void:
 		_goals_state[k] = false
 	GameEvents.day_changed.emit(current_day)
 	GameEvents.energy_changed.emit(energy, max_energy)
+
+func _compute_max_energy() -> int:
+	var bonus: int = 0
+	if has_upgrade("coffee"):
+		bonus += 2
+	return MAX_ENERGY_BASE + bonus
+
+func purchase_upgrade(upgrade_id: String, cost: int) -> bool:
+	if upgrade_id.is_empty():
+		return false
+	if has_upgrade(upgrade_id):
+		return false
+	var economy: Node = get_node_or_null("/root/Economy")
+	if economy == null:
+		return false
+	if int(economy.money) < cost:
+		return false
+	if not economy.spend(cost):
+		return false
+	purchased_upgrades.append(upgrade_id)
+	GameEvents.upgrade_purchased.emit(upgrade_id)
+	return true
+
+func has_upgrade(upgrade_id: String) -> bool:
+	return purchased_upgrades.has(upgrade_id)
 
 func unlock(program_id: String) -> void:
 	if program_id.is_empty():

@@ -63,8 +63,11 @@ func _on_like() -> void:
 	if int(_run.energy) <= 0:
 		return
 	var p: Dictionary = PROFILES[_index]
+	var chance: float = float(p["match_chance"])
+	if _run.has_upgrade("dating_plus"):
+		chance = clampf(chance + 0.1, 0.0, 1.0)
 	var roll: float = randf()
-	if roll < float(p["match_chance"]):
+	if roll < chance:
 		_run.register_match_added(p)
 		GameEvents.dating_match_added.emit(String(p["id"]))
 		_match_toast.text = "Матч с %s!" % String(p["name"])

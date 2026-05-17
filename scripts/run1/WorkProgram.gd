@@ -8,6 +8,7 @@ const WORDS_BY_CATEGORY: Dictionary = {
 	"Улица": ["Асфальт", "Фонарь", "Светофор", "Лавочка", "Бордюр"],
 }
 const CATEGORY_FULL_BONUS: int = 10
+const MONITOR_BONUS: int = 5
 const MISTAKE_PENALTY: int = 1
 const FULL_COUNT_PER_CATEGORY: int = 5
 
@@ -41,6 +42,7 @@ func _ready() -> void:
 	_build_words_pool()
 	_build_categories()
 	_update_earned_label()
+	_setup_autoclicker_button()
 
 func _build_data() -> void:
 	var all_words: Array[String] = []
@@ -116,9 +118,10 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 		_words_remaining -= 1
 		_run.register_work_correct()
 		if counter == _category_targets[slot.category_name]:
-			_economy.add(CATEGORY_FULL_BONUS)
-			_earned_today += CATEGORY_FULL_BONUS
-			_run.register_money_earned(CATEGORY_FULL_BONUS)
+			var bonus: int = CATEGORY_FULL_BONUS + (MONITOR_BONUS if _run.has_upgrade("monitor") else 0)
+			_economy.add(bonus)
+			_earned_today += bonus
+			_run.register_money_earned(bonus)
 		_update_earned_label()
 		if _words_remaining == 0:
 			_finish_panel.visible = true
@@ -132,6 +135,36 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 
 func _update_earned_label() -> void:
 	_earned_label.text = "Заработано за день: %d$" % _earned_today
+
+func _setup_autoclicker_button() -> void:
+	if not _run.has_upgrade("autoclicker"):
+		return
+	var top_bar: HBoxContainer = _back_button.get_parent() as HBoxContainer
+	if top_bar == null:
+		return
+	var btn: Button = Button.new()
+	btn.text = "Решить 1 карточку"
+	btn.custom_minimum_size = Vector2(180, 0)
+	btn.pressed.connect(_on_autoclicker_pressed)
+	top_bar.add_child(btn)
+	top_bar.move_child(btn, top_bar.get_child_count() - 2)
+
+func _on_autoclicker_pressed() -> void:
+	if int(_run.energy) <= 0:
+		return
+	if _words_box.get_child_count() == 0:
+		return
+	var card: WordCard = _words_box.get_child(0) as WordCard
+	if card == null:
+		return
+	var word: String = card.word
+	var cat: String = String(_correct_lookup.get(word, ""))
+	if cat.is_empty():
+		return
+	for slot_node: Node in _categories_box.get_children():
+		if slot_node is CategorySlot and (slot_node as CategorySlot).category_name == cat:
+			_on_word_dropped(slot_node as CategorySlot, word, card)
+			return
 
 
 class WordCard extends Control:
