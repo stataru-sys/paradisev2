@@ -1,0 +1,36 @@
+# Godot 4+ specific ignores
+.godot/
+.import/
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# System / Editor / IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+*.tmp
+
+# Build artifacts of MCP server (server lives OUTSIDE the project, but if someone copies it in)
+node_modules/
+server/build/
+
+# Personal Claude settings
+.claude/settings.local.json
+.claude/handoff/*.local.md
+
+# Logs / playtest artifacts
+*.log
+*.csv
+
+# OS-level Godot user data (not project-tracked)
+export.cfg
+export_presets.cfg
