@@ -1,0 +1,143 @@
+[gd_scene format=3 uid="uid://drun2casino2030"]
+
+[ext_resource type="Script" uid="uid://nsox0w5ol1rx" path="res://scripts/run2/CasinoApp.gd" id="1_casino"]
+
+[node name="CasinoApp" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_casino")
+back_button_path = NodePath("Bg/Margin/Layout/Header/BackBtn")
+money_label_path = NodePath("Bg/Margin/Layout/Header/MoneyLabel")
+energy_label_path = NodePath("Bg/Margin/Layout/Header/EnergyLabel")
+selection_label_path = NodePath("Bg/Margin/Layout/Body/LeftPanel/Selection")
+bet_buttons_box_path = NodePath("Bg/Margin/Layout/Body/LeftPanel/BetButtons")
+spin_button_path = NodePath("Bg/Margin/Layout/Body/LeftPanel/SpinBtn")
+history_box_path = NodePath("Bg/Margin/Layout/Body/RightPanel/HistoryBox")
+empty_history_label_path = NodePath("Bg/Margin/Layout/Body/RightPanel/EmptyHistory")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.15, 0.06, 0.1, 1)
+
+[node name="Margin" type="MarginContainer" parent="Bg"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="Layout" type="VBoxContainer" parent="Bg/Margin"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="Bg/Margin/Layout"]
+layout_mode = 2
+
+[node name="BackBtn" type="Button" parent="Bg/Margin/Layout/Header"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "← Назад"
+
+[node name="Sp1" type="Control" parent="Bg/Margin/Layout/Header"]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Bg/Margin/Layout/Header"]
+modulate = Color(0.95, 0.85, 0.55, 1)
+layout_mode = 2
+text = "Казино «Парадайз»"
+
+[node name="Spacer" type="Control" parent="Bg/Margin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MoneyLabel" type="Label" parent="Bg/Margin/Layout/Header"]
+modulate = Color(0.95, 0.95, 0.95, 1)
+layout_mode = 2
+text = "Деньги: 0$"
+
+[node name="Sp2" type="Control" parent="Bg/Margin/Layout/Header"]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+
+[node name="EnergyLabel" type="Label" parent="Bg/Margin/Layout/Header"]
+modulate = Color(0.85, 0.85, 0.85, 1)
+layout_mode = 2
+text = "Энергия 0/0"
+
+[node name="Sep" type="HSeparator" parent="Bg/Margin/Layout"]
+layout_mode = 2
+
+[node name="Body" type="HBoxContainer" parent="Bg/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeftPanel" type="VBoxContainer" parent="Bg/Margin/Layout/Body"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+
+[node name="BetsHeader" type="Label" parent="Bg/Margin/Layout/Body/LeftPanel"]
+modulate = Color(0.95, 0.95, 0.7, 1)
+layout_mode = 2
+text = "Выбери ставку:"
+
+[node name="BetButtons" type="HBoxContainer" parent="Bg/Margin/Layout/Body/LeftPanel"]
+layout_mode = 2
+
+[node name="GapA" type="Control" parent="Bg/Margin/Layout/Body/LeftPanel"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="Selection" type="Label" parent="Bg/Margin/Layout/Body/LeftPanel"]
+modulate = Color(0.85, 0.85, 0.85, 1)
+layout_mode = 2
+text = "Выбери ставку"
+
+[node name="GapB" type="Control" parent="Bg/Margin/Layout/Body/LeftPanel"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="SpinBtn" type="Button" parent="Bg/Margin/Layout/Body/LeftPanel"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+disabled = true
+text = "Крутить"
+
+[node name="GapC" type="Control" parent="Bg/Margin/Layout/Body/LeftPanel"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="Disclaimer" type="Label" parent="Bg/Margin/Layout/Body/LeftPanel"]
+modulate = Color(0.65, 0.65, 0.7, 1)
+layout_mode = 2
+text = "Шансы: 45% / 30% / 15% / 8% / 2%
+(ничего / возврат / x2 / x3 / x7)
+Крутка тратит 1 энергию."
+autowrap_mode = 2
+
+[node name="MidSp" type="Control" parent="Bg/Margin/Layout/Body"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="RightPanel" type="VBoxContainer" parent="Bg/Margin/Layout/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HistoryHeader" type="Label" parent="Bg/Margin/Layout/Body/RightPanel"]
+modulate = Color(0.95, 0.95, 0.7, 1)
+layout_mode = 2
+text = "История последних 5 круток:"
+
+[node name="EmptyHistory" type="Label" parent="Bg/Margin/Layout/Body/RightPanel"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 2
+text = "Пока ни одной крутки. Можно начать."
+
+[node name="HistoryBox" type="VBoxContainer" parent="Bg/Margin/Layout/Body/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3

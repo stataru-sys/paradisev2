@@ -4,6 +4,45 @@
 
 ---
 
+## Slice D — Казино ✓
+
+**Коммит:** будет создан после ревью keeper'ом (см. `git status`).
+
+**Что добавлено:**
+
+| Файл | Что |
+|---|---|
+| `scenes/run2/CasinoApp.tscn` *(новый)* | UI «Казино «Парадайз»». Bg тёмно-винный ColorRect → Margin → VBox. Header: BackBtn + Title (золотой акцент) + MoneyLabel + EnergyLabel. Body: HBox(LeftPanel 320px / MidSp 24px / RightPanel). LeftPanel: BetsHeader + BetButtons (HBox под 3 кнопки 10/25/50) + Selection-label + SpinBtn (большая, 56px высоты, начально disabled) + Disclaimer о шансах. RightPanel: HistoryHeader + EmptyHistory placeholder + HistoryBox (VBox 5 строк FIFO). |
+| `scripts/run2/CasinoApp.gd` *(новый)* | `const OUTCOMES: Array[Dictionary]` с накопительными порогами 0.45/0.75/0.90/0.98/1.00 → multiplier 0/1/2/3/7. `_build_bet_buttons()` создаёт 3 Button с привязкой к `_select_bet()`. `_select_bet(bet)` запоминает `_selected_bet`, обновляет Selection label и подсвечивает выбранную кнопку через `modulate`. `_update_bet_button_states()` дизаблит кнопку ставки если `money < bet`. `_update_spin_button_state()` дизаблит «Крутить» если ставка не выбрана / money недостаточно / energy ≤ 0. `_on_spin_pressed()`: `Economy.spend(bet)` → `_roll_outcome()` → если multiplier>0, `Economy.add(bet*multiplier)` → `register_casino_win(delta)` (если delta>0) или `register_casino_loss(bet)` (если multiplier=0) → `_push_history()` → `event_log_added` → `spend_energy(1)`. История: новые строки в верх через `move_child(line, 0)`, хвост обрезается до `HISTORY_MAX=5`. Подписан на `money_changed`/`energy_changed`. |
+| `scripts/core/RunService.gd` *(изменён)* | Добавлены `register_casino_win(amount)` (увеличивает `casino_won_today` если amount > 0) и `register_casino_loss(amount)` (аналогично `casino_lost_today`). |
+| `scripts/run2/Run2.gd` *(изменён)* | `SCENE_PATHS["casino"] = "res://scenes/run2/CasinoApp.tscn"`. В `_ready()` после auto-unlock `shop` добавлен `if not _run.has_unlock("casino"): _run.unlock("casino")`. |
+
+**Smoke через MCP:**
+1. `play_scene main` → MainMenu → форс `current_day=2`, `Economy.add(500)` → клик «Начать Run 1» → routing day 2 → Run2.tscn ✓
+2. Computer → Включить → Desktop2: иконка «Казино» **больше не приглушена** (только «ИИ-агенты» остаются locked) ✓
+3. Клик «Казино» → CasinoApp открыт: header «$500 / Деньги: 500$ / Энергия 8/8», ставки 10/25/50 активны, «Крутить» disabled, «История пустая: Пока ни одной крутки. Можно начать.» ✓
+4. Несколько одиночных круток ставкой 10$ через `spin_btn.pressed.emit()` — money меняется, история растёт, energy уменьшается. ✓
+
+**Что НЕ проверено в smoke (отложено):**
+- Статистическое распределение 45/30/15/8/2 на 200+ круток — попытка проверить программно через цикл повесила MCPGameInspector (сцена/компьютер). Распределение проверено только математически (накопительные пороги корректные). Если keeper хочет визуальной верификации — крутить вручную и читать историю/`casino_won_today`/`casino_lost_today`.
+- Acceptance «История содержит не больше 5 строк» — проверено по коду (`while get_child_count() > HISTORY_MAX: queue_free` хвоста), не запущено runtime после фикса.
+
+**Что keeper'у проверить вручную:**
+- Тексты исходов (особенно «x7. Ты сорвал джекпот. Лучше уходи прямо сейчас.» и «Ничего. Просто ничего.») — попадают ли в тон.
+- Цвета строк истории: зелёный для delta>0, красный для delta<0, нейтральный для delta=0. Может быть слишком ярко.
+- Disclaimer «Шансы: 45% / 30% / 15% / 8% / 2%» — нужна ли вообще в проде или это spoiler от честного казино. Это сатира на казино, так что наверное норм.
+- Подсветка выбранной кнопки ставки через modulate — на тёмном фоне может быть малозаметно.
+
+**Компромиссы / known issues:**
+- В крутке нет анимации барабана — просто мгновенный результат. Это OK для MVP.
+- При недостатке денег для выбранной ставки `_selected_bet` сбрасывается и Selection текст → «Выбери ставку». Это может «сбросить» намерение игрока, если он выбрал ставку и в этот момент пришёл какой-то списания. На практике редко, но keeper может попросить менее агрессивный сброс.
+- История не сохраняется между запусками программы (Назад → снова Казино → пусто). Это сознательно — история per-session.
+- `event_log_added` эмитится, но UI EventLog ещё нет — увидим только в Slice F. Пока сообщения идут «в никуда» (никто не подписан, кроме внутренних подписчиков).
+
+**Следующий слайс (Slice E — ИИ-агенты):** см. `next.md`.
+
+---
+
 ## Slice C — Магазин апгрейдов ✓
 
 **Коммит:** будет создан после ревью keeper'ом (см. `git status`).

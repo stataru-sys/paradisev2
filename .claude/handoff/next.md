@@ -13,8 +13,8 @@
 | A | **Run 1 как первый день** + RunService + MainScene-router | Энергия, day topbar, цели, DaySummary, end-of-day, autoload-сервис состояния run-а, роутер сцен | **✓ закрыт** |
 | B | **Run 2 каркас** + переход через RunService | Run2.tscn с 6 иконками Desktop'а (3 рабочих + 3 заглушки), `next_day()` в роутере | **✓ закрыт** |
 | C | **Магазин апгрейдов** | ShopApp с 5 апгрейдами (кофе / монитор / дейтинг+ / курс ответов / автокликер), интеграция эффектов в Economy/Work/Dating/Mail | **✓ закрыт** |
-| D | **Казино** | CasinoApp с 3 ставками (10/25/50), 5 исходов (45/30/15/8/2%), история последних 5 | **активный** |
-| E | **ИИ-агенты** | AgentShopApp с 4 агентами (Стажёр-GPT / Людмила / Ответчик-3000 / Мини-делегатор), применение в начале дня и при действиях, побочки | pending |
+| D | **Казино** | CasinoApp с 3 ставками (10/25/50), 5 исходов (45/30/15/8/2%), история последних 5 | **✓ закрыт** |
+| E | **ИИ-агенты** | AgentShopApp с 4 агентами (Стажёр-GPT / Людмила / Ответчик-3000 / Мини-делегатор), применение в начале дня и при действиях, побочки | **активный** |
 | F | **Event log + Day Summary Run 2 + полировка** | EventLog widget, подписка на сигналы из всех систем, расширенный DaySummary с разделом «самое абсурдное событие», 4 вердикта | pending |
 
 **Зависимости:**
@@ -45,63 +45,77 @@
 
 ---
 
-## Текущий слайс — D (Казино)
+## Что готово после Slice D
+
+- `scenes/run2/CasinoApp.tscn` + `scripts/run2/CasinoApp.gd` — программа «Казино «Парадайз»». TopBar: ← Назад + Title + MoneyLabel + EnergyLabel. Body: слева панель ставок (3 кнопки 10/25/50, Selection label, кнопка «Крутить», disclaimer о шансах), справа — VBox-история последних 5 круток с EmptyHistory placeholder.
+- 5 исходов с накопительными порогами (0.45/0.75/0.90/0.98/1.00) → multiplier 0/1/2/3/7. На крутку: `Economy.spend(bet)` → если multiplier>0, `Economy.add(bet*multiplier)` → `register_casino_win(delta)` или `register_casino_loss(bet)` → `spend_energy(1)` → строка в историю + `event_log_added`.
+- `RunService.register_casino_win(amount)` и `register_casino_loss(amount)`.
+- `Run2.gd` — `SCENE_PATHS["casino"]` + `_run.unlock("casino")` в `_ready()`.
+
+---
+
+## Текущий слайс — E (ИИ-агенты)
 
 ### Goal
-Реализовать CasinoApp как полноценную программу Run 2. Контент: 3 уровня ставки (10/25/50), кнопка «Крутить», 5 исходов с разным шансом + 5-строчная история. Slice D разблокирует `casino`. Магазин и Агенты остаются как есть (Магазин уже разблокирован в C, Агенты locked до E).
+Реализовать AgentShopApp — программу найма ИИ-агентов. 4 агента с эффектами, применяющимися либо в начале дня (`apply_agents_for_new_day()` из `next_day()`), либо при конкретных действиях (Work-карточка, Mail-ответ). У большинства агентов есть **побочка** (chance провала). Slice E разблокирует `agents`.
 
 ### Files to touch
 
 **Создать:**
-- `scenes/run2/CasinoApp.tscn` + `scripts/run2/CasinoApp.gd` — программа казино. Layout: TopBar («← Назад» + Title «Казино «Парадайз»» + MoneyLabel). Body: слева — 3 кнопки ставки (10$ / 25$ / 50$), кнопка «Крутить» (disabled если ставка не выбрана / money < bet / energy ≤ 0), Label с текущим выбором ставки. Справа — VBox-история «История последних 5 круток» (5 строк, FIFO; новые сверху или снизу — на выбор).
+- `scripts/data/AgentData.gd` (optional — допустимо держать список агентов как `const AGENTS: Array[Dictionary]` в `AgentShopApp.gd`, по аналогии с апгрейдами Slice C).
+- `scenes/run2/AgentShopApp.tscn` + `scripts/run2/AgentShopApp.gd` — UI с двумя секциями: «Магазин агентов» (4 карточки с кнопкой «Нанять») и «Мои агенты» (список нанятых).
 
 **Изменить:**
-- `scripts/core/RunService.gd` — методы `register_casino_win(amount: int)` и `register_casino_loss(amount: int)` (тривиально — увеличить `casino_won_today` / `casino_lost_today`). Поля уже есть из Slice A.
-- `scripts/run2/Run2.gd` — `SCENE_PATHS["casino"] = "res://scenes/run2/CasinoApp.tscn"` + в `_ready()` `_run.unlock("casino")` (по аналогии с shop, держит UX простым).
+- `scripts/core/RunService.gd` — `purchase_agent(agent_id, cost) -> bool` (по образцу `purchase_upgrade`), `has_agent(id) -> bool`, метод `apply_agents_for_new_day()` (вызывается **из `next_day()` в конце**, после сброса статистики). Внутри `apply_agents_for_new_day()` — реализация эффектов «в начале дня» (см. ниже).
+- `scripts/core/GameEvents.gd` — `signal agent_hired(agent_id: String)`.
+- `scripts/run2/Run2.gd` — `SCENE_PATHS["agents"]` + auto-unlock в `_ready()`.
+- `scripts/run1/WorkProgram.gd` — если has_agent("intern_gpt") и в `_ready` есть карточки → авто-решить 1 случайную карточку с 25% шансом ошибки (см. ниже).
+- `scripts/run1/DatingProgram.gd` — если has_agent("lyudmila") — `chance += 0.15`. Но в `_on_dislike` 20% шанс «срезать симпатию у случайного матча» (Людмила сует не туда). Симпатия снижается на 0.1.
+- `scripts/run1/MailProgram.gd` — если has_agent("answerer_3000") и есть матчи → авто-ответ на случайный матч с 60% positive / 40% negative реакцией. Тратит **0** энергии игрока (вместо 1). См. ниже.
 
-### Логика крутки
+### Каталог агентов
 
 ```
-outcomes = [
-  {"weight": 0.45, "text": "Ничего. Просто ничего.", "multiplier": 0},
-  {"weight": 0.30, "text": "Вернули ставку. Спасибо. Наверное.", "multiplier": 1},
-  {"weight": 0.15, "text": "x2. Сегодня ты молодец.", "multiplier": 2},
-  {"weight": 0.08, "text": "x3. Это даже немного подозрительно.", "multiplier": 3},
-  {"weight": 0.02, "text": "x7. Ты сорвал джекпот. Лучше уходи прямо сейчас.", "multiplier": 7},
+[
+  {"id": "intern_gpt", "name": "Стажёр-GPT", "cost": 60,
+   "description": "Решит за тебя 1 карточку в Работе. 25% шанс ошибки.",
+   "effect": "work_card_auto"},
+  {"id": "lyudmila", "name": "Людмила", "cost": 80,
+   "description": "+15% к шансу матча. Иногда снижает симпатию у случайного матча — не туда нажала.",
+   "effect": "dating_boost"},
+  {"id": "answerer_3000", "name": "Ответчик-3000", "cost": 100,
+   "description": "Отвечает за тебя в Почте. 60% позитивных реакций, 40% негативных. Без твоей энергии.",
+   "effect": "mail_auto_reply"},
+  {"id": "mini_delegator", "name": "Мини-делегатор", "cost": 120,
+   "description": "+10$ пассивно в начале каждого дня. 10% шанс на «хаос-задачу» — отнимает 1 энергию утром.",
+   "effect": "morning_passive"},
 ]
 ```
 
-Распределение: random `randf()` → накопительный поиск по выбранным исходам (порог 0.45 → 0.75 → 0.90 → 0.98 → 1.0). Расчёт: `delta = bet * multiplier - bet`. Если 0 — проигрыш на `bet`. Если 1 — нейтрально (вернули). Если 2/3/7 — выигрыш `delta`.
+### Применение эффектов
 
-Применение:
-1. `Economy.spend(bet)` (списать ставку).
-2. Если `multiplier > 0` — `Economy.add(bet * multiplier)` (вернуть/выиграть).
-3. `_run.register_casino_win(delta)` если delta > 0, иначе `_run.register_casino_loss(bet)` при multiplier=0.
-4. `_run.spend_energy(1)`.
-5. История получает строку формата: `"Ставка 25$ → x2. Сегодня ты молодец. (+25$)"`.
-6. `GameEvents.event_log_added.emit("Казино: <текст исхода> (<delta>$)")`.
+- **Стажёр-GPT (`intern_gpt`)** — в `WorkProgram._ready()` после построения words/categories: если has_agent, через `call_deferred("_intern_auto_solve")` решить 1 случайное слово. 25% — решит **неправильно** (специально дропнуть в чужую категорию, чтобы триггернуть penalty). Иначе — правильно. Затем эмитнуть `event_log_added("Стажёр-GPT: <слово> → <категория> [правильно/ошибка]")`. **Не тратит энергию игрока** (это бонус, не его действие).
+- **Людмила (`lyudmila`)** — `_on_like`: `chance += 0.15`. Также в `_on_dislike`: 20% шанс «промашки» — если в `_run.matches` есть хоть один матч, снизить симпатию случайному матчу на 0.1 + `event_log_added("Людмила вместо тебя написала <имя>: симпатия −0.1")`.
+- **Ответчик-3000 (`answerer_3000`)** — добавь в Mail кнопку «Пусть Ответчик-3000 ответит» (видна только при has_agent). На клик: рандомный матч из `_run.matches` (если есть), generate 1 ответ, 60% positive → симпатия +0.1, 40% negative → −0.1. Не тратит энергию игрока. `event_log_added("Ответчик-3000 ответил <имя>: <положительная/отрицательная> реакция")`.
+- **Мини-делегатор (`mini_delegator`)** — в `apply_agents_for_new_day()`: `Economy.add(10)` + `event_log_added("Мини-делегатор: +10$ за «работу пока ты спал»")`. С 10% шанса: `spend_energy(1)` + `event_log_added("Мини-делегатор: хаос-задача отняла 1 энергию")`. Тонкость: `spend_energy(1)` в день перед основными действиями может удивить — это намеренно (плата за пассивный доход).
 
 ### Acceptance
-- [ ] В Run 2 day 2+: иконка «Казино» больше не приглушена, открывает CasinoApp.
-- [ ] 3 кнопки ставок включаются/выключаются по `Economy.money >= bet`.
-- [ ] Выбор ставки + клик «Крутить» → списывается ставка, появляется новая строка в истории, обновляется money.
-- [ ] Энергия −1 за крутку. При energy=0 «Крутить» disabled.
-- [ ] История содержит не больше 5 последних круток.
-- [ ] Распределение шансов 45/30/15/8/2 фактически (через 100+ круток на стат).
-- [ ] casino_won_today/casino_lost_today обновляются (видно через `RunService.casino_won_today` в логе).
+- [ ] В Run 2 day 2+ иконка «ИИ-агенты» больше не приглушена, открывает AgentShopApp.
+- [ ] AgentShopApp: 4 карточки с «Нанять», состояние «Нанят» disabled-кнопка. Money-проверка как в ShopApp.
+- [ ] После найма Мини-делегатора → `next_day()` → money +10 + event_log запись (визуальная — пока без UI, но в `print()`).
+- [ ] После найма Ответчика-3000 → в Mail видна кнопка «Пусть Ответчик ответит», работает без расхода энергии.
+- [ ] После найма Людмилы → match_chance очевидно выше; иногда в логе «Людмила: симпатия −0.1».
+- [ ] После найма Стажёра-GPT → при открытии Work одна карточка решается автоматически (с 25% это будет ошибка − приведёт к penalty).
 
 ### Out of scope
-- DaySummary не показывает казино-сводку — оставлено для Slice F.
-- Сохранение истории между днями — не нужно, история — внутри-сценный буфер.
-- Анимации крутки барабана — оставлено на потом.
+- EventLog UI как виджет — Slice F.
+- DaySummary с показом «купленные агенты» — Slice F.
+- Перевод агентов на `.tres` файлы — допустимо позже.
 
 ### Подсказки
-- Выбор ставки можно держать как `_selected_bet: int = -1`, при клике на кнопку ставки `_selected_bet = 10|25|50` + визуально подсветить выбранную (`modulate` или ColorRect-индикатор).
-- Чтобы не сосчитать вероятности руками — `roll = randf()`, потом `if roll < 0.45: outcome=0 elif roll < 0.75: outcome=1 ...`. Список thresholds можно сгенерировать из weights в `_ready()`.
-- История: `VBoxContainer` + `_push_history(line: String)`. Когда `get_child_count() > 5` — `get_child(0).queue_free()`.
-
-### Slice E — ИИ-агенты
-`scripts/data/AgentData.gd` (Resource). 4 агента: Стажёр-GPT (60$, 1 карточка Work авто, 25% ошибка), Людмила (80$, +0.15 match_chance, иногда снижает симпатию), Ответчик-3000 (100$, 1 авто-ответ в Mail, 60% успех), Мини-делегатор (120$, +10$ пассивно в начале дня, 10% хаос-задача отнимает энергию). `AgentShopApp.tscn` с 2 секциями (Магазин / Мои агенты). `RunService.active_agents`, метод `apply_agents_for_new_day()` — вызывается из `next_day()`. Сигнал `event_log_added` для каждого срабатывания.
+- Reuse `RunService.purchase_*` шаблон: можно сделать обобщённый `_spend_and_register(id, cost, list: Array, signal_name)`, но проще пара отдельных методов как в C — 5 строк каждый.
+- `apply_agents_for_new_day()` вызывать в `next_day()` **после** обнуления статистики и эмита `day_changed`, но **до** `energy_changed` — иначе хаос-задача не успеет уменьшить энергию до того как UI отрисует «8/8».
+- Mail-кнопка «Пусть Ответчик ответит» — добавь как программный Button над списком reply-buttons, по аналогии с автокликером в Work.
 
 ### Slice F — Event log + Day Summary Run 2 + полировка
 `scripts/ui/EventLog.gd` — Control с FIFO-очередью последних 5–7 строк, подписан на `GameEvents.event_log_added(message)`. Виджет в Run2.tscn внизу или сбоку. Все системы эмитят `event_log_added`. DaySummary Run 2 — добавить разделы «купленные апгрейды», «купленные агенты», «казино: +X / -Y», «самое абсурдное событие» (рандом из EventLog). 4 новых вердикта (по ТЗ).

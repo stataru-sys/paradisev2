@@ -91,6 +91,14 @@ func register_program_opened(program_id: String) -> void:
 func register_reply_sent() -> void:
 	_mark_goal("reply_once")
 
+func register_casino_win(amount: int) -> void:
+	if amount > 0:
+		casino_won_today += amount
+
+func register_casino_loss(amount: int) -> void:
+	if amount > 0:
+		casino_lost_today += amount
+
 func register_match_added(profile: Dictionary) -> void:
 	matches_today += 1
 	matches.append(profile)
