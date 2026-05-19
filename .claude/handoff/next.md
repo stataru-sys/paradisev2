@@ -1,28 +1,29 @@
-# Slice I — Corporate Mail Mini-game
+# Slice J — Bug Fix Mini-game
 
 ## Goal
-Мини-игра «Корпоративная почта» — распределение писем по папкам. Вторая работа в WorkHub (после Сортировки).
+Мини-игра «Фикс багов» — сопоставление баг↔фикс. Третья и последняя работа в WorkHub (после Сортировки и Почты).
 
 ## Context
-Дизайн-документ: `.claude/plans/work-expansion.md` раздел 4.2.
+Дизайн-документ: `.claude/plans/work-expansion.md` раздел 4.4.
 
 Сейчас:
-- WorkHub показывает 1 активную карточку (Сортировка) и 2 заблокированных (Почта, Фиксы).
-- WorkResult (Slice H) готов и переиспользуется всеми мини-играми.
-- WorkHub хостит мини-игры в `GameHost`, переподключает кнопки.
-- `WorkProgram` (сортировка) использует `_show_work_result()` → WorkResult.
+- WorkHub показывает 2 активные карточки (Сортировка, Почта) и 1 заблокированную (Фиксы).
+- WorkResult (Slice H) переиспользуется.
+- Почта (Slice I) и Сортировка (Slice A) уже интегрированы.
+- В WorkHub.gd есть два почти идентичных метода `_on_start_sorting` и `_on_start_mail_sorting`.
 
 Нужно:
-- Создать `MailSortGame` — мини-игру с письмами и 4 папками.
-- Сделать карточку «Корпоративная почта» активной в WorkHub (Run 2).
-- Интегрировать с WorkResult (переиспользовать, не дублировать).
-- Энергия: -2 при старте мини-игры (списывается сразу).
+- Создать `BugfixGame` — мини-игру с сопоставлением багов и фиксов (клик-клик).
+- Сделать карточку «Фикс багов» активной в WorkHub (Run 2).
+- **Вынести общий метод `_start_work_game(scene_path, energy_cost)`** — на третьей игре дублирование уже не ок.
+- Энергия: -2 при старте (как Почта).
 
 ## Flow
 ```
-WorkHub → клик «Начать» на Почте
-  → MailSortGame (письма по одному, 4 кнопки-папки)
-    → все письма разобраны (или игрок нажал «Закончить»)
+WorkHub → клик «Начать» на Фиксах
+  → BugfixGame (3 бага + 3 фикса перемешаны)
+    → клик баг → клик фикс → правильно / ошибка (+новый баг)
+    → все баги закрыты (или >5 багов = провал)
       → WorkResult (earned, errors, energy_used, quality)
         → «Вернуться к работе» → WorkHub
         → «На рабочий стол» → Desktop
@@ -31,159 +32,163 @@ WorkHub → клик «Начать» на Почте
 ## Files to touch
 
 ### Новые файлы:
-- `scenes/run2/MailSortGame.tscn` — сцена мини-игры
-- `scripts/run2/MailSortGame.gd` — логика писем, папок, наград/ошибок
+- `scenes/run2/BugfixGame.tscn` — сцена мини-игры
+- `scripts/run2/BugfixGame.gd` — логика багов, фиксов, каскада ошибок
 
 ### Изменяемые файлы:
-- `scenes/run2/WorkHub.tscn` — Card_Mail: заменить locked-лейаут на активный (stats + кнопка)
-- `scripts/run2/WorkHub.gd` — добавить `mail_start_button_path`, `_on_start_mail_sorting()`
-- `scripts/core/GameEvents.gd` — если нужны новые сигналы (вероятно нет, `program_closed` + `work_day_finished` уже есть)
+- `scenes/run2/WorkHub.tscn` — Card_Bugfix: заменить locked-лейаут на активный (stats + кнопка)
+- `scripts/run2/WorkHub.gd` — вынести `_start_work_game(scene, energy)`, добавить `bugfix_start_button_path`, убрать дублирование `_on_start_sorting` / `_on_start_mail_sorting`
 
-## MailSortGame spec
+## BugfixGame spec
 
 ### Сатира:
-«Письма от тех, кто тоже не знает, зачем работает. Твой долг — рассортировать их так, чтобы никто ничего не заметил.»
+«Баг — это фича, которую ещё не переименовали. А переименовать — твоя работа.»
 
 ### Механика:
-- Игроку показывается 5–7 писем **по одному**.
-- Каждое письмо: отправитель + тема + короткий текст (1–2 предложения).
-- 4 кнопки-папки: **«Срочно»**, **«Игнорировать»**, **«Делегировать»**, **«Шаблон»**.
-- После выбора папки → мгновенный фидбек (правильно/нейтрально/ошибка) → следующее письмо.
-- После последнего письма → `_show_work_result()` (как в WorkProgram).
+- Показывается 3 бага и 3 фикса (перемешаны, каждый в своём столбце).
+- Игрок кликает баг (он подсвечивается) → кликает фикс → проверка.
+- Правильный фикс: +$5, баг и фикс убираются.
+- Ошибка: -$1, появляется новый баг (каскад).
+- Если багов > 5 → провал.
+- Цель: закрыть все баги с минимумом ошибок.
+- Нет кнопки «Закончить» досрочно — только полное закрытие или провал.
 
 ### Награда / штраф:
-- Правильная папка: **+$4**
-- Нейтральная папка: **+$1**
-- Ошибочная папка: **−$2**
-- Пропущено важное (ловушка от начальника): **−$5**
-- Бонус за все правильные: **+$5** («Идеальный сортировщик»)
-- Энергия: **−2** за сессию (списывается при старте)
+- Правильный фикс: **+$5**
+- Ошибка: **−$1** + новый баг
+- Все 3 закрыты без ошибок: бонус **+$5** («Баг-слеер»)
+- Провал (>5 багов): **$0**, комментарий «Передано в аутсорс»
+- Энергия: **−2** за сессию
 
-### Структура сцены MailSortGame:
+### Структура сцены BugfixGame:
 ```
-MailSortGame (Control, anchor full_rect)
-├── Bg (ColorRect, тёмно-синий/фиолетовый оттенок)
+BugfixGame (Control, anchor full_rect)
+├── Bg (ColorRect, тёмно-красный/бордовый оттенок)
 ├── Margin (MarginContainer)
 │   └── Layout (VBoxContainer)
 │       ├── TopBar (HBoxContainer)
 │       │   ├── BackBtn (Button: «← Назад»)
 │       │   ├── Spacer
-│       │   ├── ProgressLabel (Label: «Письмо 1/6»)
+│       │   ├── ProgressLabel (Label: «Багов: 3»)
 │       │   └── EarnedLabel (Label: «+0$»)
-│       ├── EmailPanel (PanelContainer, стилизованный)
-│       │   └── VBox
-│       │       ├── SenderLabel (Label: «От: Михаил, отдел синергии»)
-│       │       ├── SubjectLabel (Label: «Синхронизация по созвону», bold)
-│       │       └── BodyLabel (Label: «Коллеги, предлагаю...», autowrap)
-│       └── FoldersBox (HBoxContainer, 4 кнопки)
-│           ├── UrgentBtn (Button: «🚨 Срочно»)
-│           ├── IgnoreBtn (Button: «🗑 Игнорировать»)
-│           ├── DelegateBtn (Button: «👥 Делегировать»)
-│           └── TemplateBtn (Button: «📋 Шаблон»)
+│       ├── GameArea (HBoxContainer)
+│       │   ├── BugsColumn (VBoxContainer)
+│       │   │   ├── BugsHeader (Label: «Баги»)
+│       │   │   └── BugsBox (VBoxContainer) — наполняется программно
+│       │   ├── Spacer
+│       │   └── FixesColumn (VBoxContainer)
+│       │       ├── FixesHeader (Label: «Фиксы»)
+│       │       └── FixesBox (VBoxContainer) — наполняется программно
+│       └── FeedbackLabel (Label)
 ```
 
-### Формат пула писем (в скрипте):
+### Пул багов (в скрипте, 12 шт):
 ```gdscript
-const EMAILS: Array[Dictionary] = [
+const BUGS: Array[Dictionary] = [
     {
-        "sender": "Михаил, отдел синергии",
-        "subject": "Синхронизация по созвону",
-        "body": "Коллеги, предлагаю синхронизироваться по вчерашнему созвону. Когда всем удобно?",
-        "correct": "ignore",       # «Игнорировать»
-        "neutral": "template",     # «Шаблон»
-        "trap": false,             # не ловушка
+        "bug": "Кнопка исчезает после клика",
+        "fix": "Проверить visible в _on_pressed",
+        "traps": ["Переименовать кнопку", "Удалить сцену", "Сказать что фича"],
     },
     {
-        "sender": "Анна, HR",
-        "subject": "Срочно: опрос удовлетворённости",
-        "body": "Заполните до конца дня. Это обязательно. Да. Прямо сейчас.",
-        "correct": "urgent",
-        "neutral": "template",
-        "trap": true,              # если проигнорировать → -$5
+        "bug": "Энергия не тратится",
+        "fix": "Добавить spend_energy в метод",
+        "traps": ["Увеличить max_energy", "Перезагрузить ноут", "Купить ещё энергии"],
     },
-    # ... ещё 16–18 писем
+    # ... ещё 10
 ]
 ```
 
-### Типы писем (разнообразие):
-1. **Обычное рабочее** (10 шт) — 1 правильная папка, 1 нейтральная, 2 ошибочные.
-2. **Письмо-ловушка от начальника** (3 шт) — выглядит как спам, но `trap: true`. Если «Игнорировать» → −$5.
-3. **Письмо от AI-агента** (2 шт) — агент сам себя в копии, отвечать бессмысленно.
-4. **Приглашение на митинг** (2 шт) — любое действие кроме «Игнорировать» + «Шаблон» считается ошибкой.
-5. **Спам** (3 шт) — правильное = «Игнорировать», нейтральное = «Шаблон».
-
-### Логика `_on_folder_picked(folder: String)`:
+### Логика `_on_fix_picked(bug_index, fix_text)`:
 ```gdscript
-var email: Dictionary = _current_email
-if folder == email["correct"]:
-    _earned += 4
-    _show_feedback("Правильно", Color.GREEN)
-elif folder == email.get("neutral", ""):
-    _earned += 1
-    _show_feedback("Сойдёт", Color.YELLOW)
+var bug: Dictionary = _active_bugs[bug_index]
+if fix_text == bug["fix"]:
+    _earned += 5
+    _active_bugs.remove_at(bug_index)
+    _slots[bug_index].queue_free()
+    _slots.remove_at(bug_index)
+    _update_progress()
+    if _active_bugs.is_empty():
+        _finish_game()
 else:
-    _earned -= 2
+    _earned -= 1
     _errors += 1
-    _show_feedback("Ошибка", Color.RED)
-    if email.get("trap", false) and folder == "ignore":
-        _earned -= 5  # дополнительный штраф за игнор начальника
-
-_next_email()
+    _all_correct = false
+    _spawn_new_bug()  # добавить случайный баг из пула
+    if _active_bugs.size() > 5:
+        _fail_game()
 ```
 
+### Логика `_spawn_new_bug()`:
+- Взять случайный баг из `BUGS` (которого ещё нет в `_active_bugs`).
+- Если все 12 уже использованы — взять любой.
+- Добавить в `_active_bugs` и `_slots`.
+
 ### Интеграция с WorkHub:
-- Card_Mail в WorkHub.tscn получает stats (5–25$, -2 энергии, Риск: Средний) и кнопку «Начать».
-- WorkHub.gd: новый `@export var mail_start_button_path: NodePath`, новый метод `_on_start_mail_sorting()`.
-- `_on_start_mail_sorting()`: списать 2 энергии, загрузить MailSortGame, инстанциировать в GameHost.
-- Переподключить `_back_button` в MailSortGame → `_on_game_return`.
-- Подписаться на `work_day_finished` → найти WorkResult → подключить `return_to_hub` (как в `_on_start_sorting`).
-- **В Run 1 карточка Почты остаётся заблокированной** — условие: `_run.current_day >= 2`.
+- Card_Bugfix в WorkHub.tscn получает stats (8–25$, -2 энергии, Риск: Высокий) и кнопку «Начать».
+- **Вынести `_start_work_game(scene_path: String, energy_cost: int)`** в WorkHub.gd:
+  ```gdscript
+  func _start_work_game(scene_path: String, energy_cost: int) -> void:
+      if int(_run.energy) < energy_cost:
+          return
+      if _game_host.get_child_count() > 0:
+          return
+      _run.spend_energy(energy_cost)
+      _cards_list.visible = false
+      _game_host.visible = true
+      var scene: PackedScene = load(scene_path) as PackedScene
+      var game: Control = scene.instantiate() as Control
+      _game_host.add_child(game)
+      game.anchor_right = 1
+      game.anchor_bottom = 1
+      _reconnect_game_button(game, "_back_button")
+      GameEvents.work_day_finished.connect(_on_game_finished, CONNECT_ONE_SHOT)
+  ```
+- `_on_start_sorting()` → `_start_work_game(WORK_PROGRAM_SCENE, 0)` (0 = проверка energy <= 0 внутри)
+- `_on_start_mail_sorting()` → `_start_work_game(MAIL_SORT_SCENE, MAIL_ENERGY_COST)`
+- `_on_start_bugfix()` → `_start_work_game(BUGFIX_SCENE, BUGFIX_ENERGY_COST)`
 
 ### Кнопка «Закончить»:
-В отличие от сортировки (где нужно разобрать все слова), в Почте игрок может захотеть закончить досрочно. Добавить кнопку «Закончить» в TopBar:
-- Если игрок нажал «Закончить» до того как разобрал все письма — оставшиеся письма не учитываются, показывается WorkResult с текущим результатом.
-- Если все письма разобраны — авто-показ WorkResult.
+В отличие от Почты, в Фиксах нет кнопки «Закончить». Игрок либо закрывает все баги, либо доводит до >5 (провал). Это создаёт напряжение: каждая ошибка приближает к провалу.
 
-## WorkHub.tscn — Card_Mail (активная версия)
+## WorkHub.tscn — Card_Bugfix (активная версия)
 
 Заменить текущий locked-лейаут на:
 ```
-Card_Mail (PanelContainer, theme_override_styles/panel = StyleBoxFlat_sorting)
+Card_Bugfix (PanelContainer, theme_override_styles/panel = StyleBoxFlat_sorting)
 ├── Margin (MarginContainer, margin 12/8/12/8)
 │   └── Row (HBoxContainer)
 │       ├── Info (VBoxContainer, size_flags_horizontal=3)
-│       │   ├── NameLabel (Label: «Корпоративная почта», font_size=20, WHITE)
-│       │   ├── DescLabel (Label: «Рассортируй письма по папкам. Игнорировать — тоже ответ.», font_size=14, autowrap)
+│       │   ├── NameLabel (Label: «Фикс багов», font_size=20, WHITE)
+│       │   ├── DescLabel (Label: «Сопоставь баг с правильным фиксом. Ошибка плодит новые баги.», font_size=14, autowrap)
 │       │   └── StatsBox (HBoxContainer)
-│       │       ├── RewardLabel (Label: «5–25$», зеленоватый)
+│       │       ├── RewardLabel (Label: «8–25$», зеленоватый)
 │       │       ├── CostLabel (Label: «-2 энергии», серый)
-│       │       └── RiskLabel (Label: «Риск: Средний», желтоватый)
+│       │       └── RiskLabel (Label: «Риск: Высокий», красноватый)
 │       └── StartBtn (Button: «Начать»)
 ```
 
-StyleBoxFlat_sorting уже есть в сцене — переиспользовать.
-
 ## Acceptance
-- [ ] В Run 2 WorkHub показывает «Корпоративную почту» как доступную (зелёная карточка, кнопка «Начать»).
-- [ ] В Run 1 Почта остаётся заблокированной.
-- [ ] Кнопка «Начать» на Почте → списывается 2 энергии → открывается MailSortGame.
-- [ ] Показывается письмо с отправителем, темой, текстом и 4 кнопками папок.
-- [ ] Правильный выбор папки → +4$, зелёный фидбек.
-- [ ] Нейтральный выбор → +1$, жёлтый фидбек.
-- [ ] Ошибочный выбор → −2$, красный фидбек.
-- [ ] Письмо-ловушка: если «Игнорировать» → дополнительный −5$.
-- [ ] После последнего письма → WorkResult с итогами.
-- [ ] Кнопка «Закончить» досрочно → WorkResult с текущим результатом.
-- [ ] «Вернуться к работе» в WorkResult → WorkHub.
-- [ ] «На рабочий стол» в WorkResult → Desktop.
-- [ ] Прогресс-лейбл обновляется («Письмо 3/6»).
-- [ ] Playtest через MCP: Desktop → WorkHub → Почта → разобрать письма → WorkResult → WorkHub.
+- [ ] В Run 2 WorkHub показывает «Фикс багов» как доступную (зелёная/бордовая карточка, кнопка «Начать»).
+- [ ] В Run 1 Фиксы остаются заблокированными.
+- [ ] Кнопка «Начать» на Фиксах → списывается 2 энергии → открывается BugfixGame.
+- [ ] Показаны 3 бага слева, 3 фикса справа.
+- [ ] Клик баг → клик правильный фикс → +5$, оба убираются.
+- [ ] Клик баг → клик неправильный фикс → −1$, появляется новый баг.
+- [ ] Все 3 закрыты без ошибок → бонус +5$.
+- [ ] >5 багов → провал, $0, «Передано в аутсорс».
+- [ ] WorkResult показывает итоги.
+- [ ] «Вернуться к работе» → WorkHub.
+- [ ] «На рабочий стол» → Desktop.
+- [ ] Прогресс-лейбл обновляется («Багов: 4»).
+- [ ] Общий метод `_start_work_game()` вынесен, дублирование в `_on_start_sorting` / `_on_start_mail_sorting` убрано.
+- [ ] Playtest через MCP: Desktop → WorkHub → Фиксы → сопоставить 3 бага → WorkResult → WorkHub.
 
 ## Out of scope (НЕ делать в этом слайсе)
-- Не добавлять апгрейды `reply_templates` и `spam_filter`.
-- Не добавлять агента `mail_demon`.
-- Не делать анимации перехода между письмами.
+- Не добавлять апгрейд `stackoverflow_premium`.
+- Не добавлять агента `bugdav`.
+- Не делать drag-drop (только клик-клик).
+- Не добавлять анимации.
 - Не менять баланс других мини-игр.
-- Не трогать карточку «Фикс багов» (остаётся locked).
-- Не добавлять новые сигналы в GameEvents (использовать существующие `work_day_finished`, `program_closed`).
-- Не рефакторить `WorkHub._on_start_sorting` и `_on_game_finished` в общий метод (это преждевременная абстракция для 2 игр; на 3-й игре — вынесем).
+- Не добавлять новые сигналы в GameEvents.
+- Не трогать Run 3 мини-игры.
