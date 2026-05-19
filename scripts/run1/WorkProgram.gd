@@ -11,15 +11,16 @@ const CATEGORY_FULL_BONUS: int = 10
 const MONITOR_BONUS: int = 5
 const MISTAKE_PENALTY: int = 1
 const FULL_COUNT_PER_CATEGORY: int = 5
+const WORK_RESULT_SCENE: String = "res://scenes/run2/WorkResult.tscn"
 
 @export var words_box_path: NodePath
 @export var categories_box_path: NodePath
 @export var earned_label_path: NodePath
 @export var back_button_path: NodePath
-@export var finish_panel_path: NodePath
-@export var finish_button_path: NodePath
 
 var _earned_today: int = 0
+var _errors_today: int = 0
+var _energy_spent: int = 0
 var _correct_lookup: Dictionary = {}
 var _category_counters: Dictionary = {}
 var _category_targets: Dictionary = {}
@@ -29,15 +30,11 @@ var _words_remaining: int = 0
 @onready var _categories_box: VBoxContainer = get_node(categories_box_path) as VBoxContainer
 @onready var _earned_label: Label = get_node(earned_label_path) as Label
 @onready var _back_button: Button = get_node(back_button_path) as Button
-@onready var _finish_panel: Control = get_node(finish_panel_path) as Control
-@onready var _finish_button: Button = get_node(finish_button_path) as Button
 @onready var _economy: Node = get_node("/root/Economy")
 @onready var _run: Node = get_node("/root/RunService")
 
 func _ready() -> void:
-	_finish_panel.visible = false
 	_back_button.pressed.connect(func() -> void: GameEvents.program_closed.emit())
-	_finish_button.pressed.connect(func() -> void: GameEvents.program_closed.emit())
 	_build_data()
 	_build_words_pool()
 	_build_categories()
@@ -125,15 +122,27 @@ func _on_word_dropped(slot: CategorySlot, word: String, card: Control) -> void:
 			_earned_today += bonus
 			_run.register_money_earned(bonus)
 			_run.spend_energy(1)
+			_energy_spent += 1
 		_update_earned_label()
 		if _words_remaining == 0:
-			_finish_panel.visible = true
-			GameEvents.work_day_finished.emit(_earned_today)
+			_show_work_result()
 	else:
 		_economy.add(-MISTAKE_PENALTY)
 		_earned_today -= MISTAKE_PENALTY
+		_errors_today += 1
 		_run.register_work_error()
 		_update_earned_label()
+
+func _show_work_result() -> void:
+	var scene: PackedScene = load(WORK_RESULT_SCENE) as PackedScene
+	if scene == null:
+		return
+	var result: Control = scene.instantiate() as Control
+	add_child(result)
+	result.anchor_right = 1
+	result.anchor_bottom = 1
+	result.setup(_earned_today, _errors_today, _energy_spent)
+	GameEvents.work_day_finished.emit(_earned_today)
 
 func _update_earned_label() -> void:
 	_earned_label.text = "Заработано за день: %d$" % _earned_today
@@ -175,14 +184,15 @@ func _intern_drop(slot: CategorySlot, word: String, card: Control, correct: bool
 			_earned_today += bonus
 			_run.register_money_earned(bonus)
 			_run.spend_energy(1)
+			_energy_spent += 1
 		_update_earned_label()
 		if _words_remaining == 0:
-			_finish_panel.visible = true
-			GameEvents.work_day_finished.emit(_earned_today)
+			_show_work_result()
 		GameEvents.event_log_added.emit("Стажёр-GPT: %s → %s [правильно]" % [word, slot.category_name])
 	else:
 		_economy.add(-MISTAKE_PENALTY)
 		_earned_today -= MISTAKE_PENALTY
+		_errors_today += 1
 		_run.register_work_error()
 		_update_earned_label()
 		GameEvents.event_log_added.emit("Стажёр-GPT: %s → %s [ошибка, штраф 1$]" % [word, slot.category_name])

@@ -1,0 +1,136 @@
+[gd_scene format=3 uid="uid://d7k1mwp8hq0rv"]
+
+[ext_resource type="Script" uid="uid://bw7bd5dy6y784" path="res://scripts/run2/WorkResult.gd" id="1_workresult"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.12, 0.12, 0.15, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.25, 0.35, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="WorkResult" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_workresult")
+earned_label_path = NodePath("Panel/Margin/VBox/EarnedLabel")
+errors_label_path = NodePath("Panel/Margin/VBox/ErrorsLabel")
+energy_label_path = NodePath("Panel/Margin/VBox/EnergyLabel")
+quality_label_path = NodePath("Panel/Margin/VBox/QualityLabel")
+comment_label_path = NodePath("Panel/Margin/VBox/CommentLabel")
+hub_button_path = NodePath("Panel/Margin/VBox/ButtonsBox/HubBtn")
+desktop_button_path = NodePath("Panel/Margin/VBox/ButtonsBox/DesktopBtn")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -220.0
+offset_right = 260.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Результат работы"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="EarnedLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.467, 0.8, 0.533, 1)
+theme_override_font_sizes/font_size = 18
+text = "Заработано: +0$"
+horizontal_alignment = 1
+
+[node name="ErrorsLabel" type="Label" parent="Panel/Margin/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.867, 0.4, 0.333, 1)
+theme_override_font_sizes/font_size = 16
+text = "Ошибок: 0"
+horizontal_alignment = 1
+
+[node name="EnergyLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.667, 0.733, 0.867, 1)
+theme_override_font_sizes/font_size = 16
+text = "Энергии потрачено: 0"
+horizontal_alignment = 1
+
+[node name="QualityLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.867, 0.8, 0.467, 1)
+theme_override_font_sizes/font_size = 18
+text = "Качество: —"
+horizontal_alignment = 1
+
+[node name="CommentLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.667, 1)
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Sep2" type="HSeparator" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="ButtonsBox" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HubBtn" type="Button" parent="Panel/Margin/VBox/ButtonsBox"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Вернуться к работе"
+
+[node name="DesktopBtn" type="Button" parent="Panel/Margin/VBox/ButtonsBox"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.667, 0.667, 0.733, 1)
+text = "На рабочий стол"

@@ -14,8 +14,6 @@ words_box_path = NodePath("Margin/Layout/Body/WordsScroll/WordsBox")
 categories_box_path = NodePath("Margin/Layout/Body/CategoriesBox")
 earned_label_path = NodePath("Margin/Layout/TopBar/Earned")
 back_button_path = NodePath("Margin/Layout/TopBar/BackBtn")
-finish_panel_path = NodePath("FinishPanel")
-finish_button_path = NodePath("FinishPanel/FinishBtn")
 
 [node name="Bg" type="ColorRect" parent="." unique_id=2087613283]
 layout_mode = 0
@@ -76,30 +74,3 @@ custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="FinishPanel" type="Panel" parent="." unique_id=1828804906]
-modulate = Color(0, 0, 0, 0.6)
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="FinishText" type="Label" parent="FinishPanel" unique_id=474852807]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_bottom = -60.0
-text = "День закрыт. Иди отдыхать."
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="FinishBtn" type="Button" parent="FinishPanel" unique_id=1844538944]
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -120.0
-offset_top = 30.0
-offset_right = 120.0
-offset_bottom = 70.0
-text = "На рабочий стол"

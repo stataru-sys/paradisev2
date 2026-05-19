@@ -1,5 +1,44 @@
 # История закрытых слайсов
 
+## Slice H — Work Result Screen ✓
+
+**Коммит:** будет создан
+**Ревью keeper'а:** ✓ принято 2026-05-19
+
+**Что добавлено:**
+
+| Файл | Что |
+|---|---|
+| `scripts/run2/WorkResult.gd` *(новый)* | Overlay результата работы. `setup(earned, errors, energy_used)` — заполняет лейблы, считает качество (0 ошибок → «Отлично», ≤2 → «Сойдёт», >2 → «Провал»), показывает случайный сатирический комментарий из трёх пулов. Сигнал `return_to_hub`. Кнопка «На рабочий стол» → `program_closed`. Все `get_node()` напрямую (без `@onready`) для надёжности при вызове `setup()` сразу после `instantiate()`. |
+| `scenes/run2/WorkResult.tscn` *(новый)* | Control full_rect, Bg (полупрозрачный чёрный), PanelContainer по центру (520×440) с StyleBoxFlat. VBox: TitleLabel «Результат работы», HSeparator, EarnedLabel (зелёный), ErrorsLabel (красный, скрыт если 0), EnergyLabel (серо-голубой), QualityLabel (золотой), CommentLabel (серый, autowrap), HSeparator, ButtonsBox с HubBtn «Вернуться к работе» и DesktopBtn «На рабочий стол». |
+| `scripts/run1/WorkProgram.gd` *(изменён)* | Добавлены `_errors_today`, `_energy_spent`. Убраны `finish_panel`/`finish_button`. При `_words_remaining == 0` → `_show_work_result()`: загружает WorkResult, инстанциирует, вызывает `setup()`, эмитит `work_day_finished`. |
+| `scenes/run1/WorkProgram.tscn` *(изменён)* | Удалён `FinishPanel`. |
+| `scripts/run2/WorkHub.gd` *(изменён)* | Убран reconnect `_finish_button`. Добавлена подписка `work_day_finished.connect(_on_game_finished, CONNECT_ONE_SHOT)` при старте игры. `_on_game_finished` ищет WorkResult в детях игры, подключает `return_to_hub` → `_on_game_return`. |
+
+**Smoke через MCP (5/5 зелёных):**
+1. Desktop → WorkHub → «Начать» → force-complete → WorkResult с данными (+40$, ошибок 2, энергия 3, «Сойдёт», случайный комментарий) ✓
+2. «Вернуться к работе» → WorkHub (cards visible, game_host cleaned) ✓
+3. «Назад» в WorkHub → Desktop ✓
+4. Отдельно: «На рабочий стол» в WorkResult → Desktop напрямую ✓
+5. Полный цикл: Desktop→Hub→Game→WorkResult→Hub→Desktop без утечек ✓
+
+**Решения keeper'а:**
+- Тон комментариев — **принято без правок**. «Без ошибок. Подозрительно», «Сойдёт. В отчёте напишем стабильно», «Много ошибок. Но тебе заплатили» — ровно сухая ирония, попадание в стилистику.
+- `get_node()` вместо `@onready` в `setup()` — **правильно**, это не баг-фикс а архитектурное решение: setup вызывается сразу после instantiate, _ready мог не успеть.
+- Два трека `_errors_today` и `_energy_spent` в WorkProgram — ок, для WorkResult нужно.
+- Дублирование логики `_on_start_sorting` / `_on_game_finished` — пока ок для 1 игры. В Slice I будет дублирование для Почты, в Slice J для Фиксов — на третьей игре вынесем в общий `_start_work_game(scene_path, energy_cost)`.
+
+**Известные компромиссы:**
+- Удалённый `node_paths=PackedStringArray(...)` из заголовка .tscn — это редактор-специфичные метаданные, которые Godot не требует для рантайма. Без них @export NodePath десериализуются корректно. Если сцена когда-либо пересохранится из редактора — Godot добавит их обратно (и они уже не сломают).
+- WorkHub ищет WorkResult по `c.name == "WorkResult"` и сигналу `return_to_hub`. Если переименовать root-ноду в WorkResult.tscn — сломается. Диагностируется: кнопка «Вернуться к работе» перестанет работать.
+- WorkResult не `class_name` (был конфликт с глобальным классом при создании). Это мешает статической проверке типов, но не мешает рантайму.
+
+**Следующий слайс (Slice I — Corporate Mail Mini-game):** `next.md` обновлён.
+
+---
+
+# История закрытых слайсов
+
 Каждый завершённый слайс пишется сверху коротким блоком. История идёт от свежего к старому.
 
 ---

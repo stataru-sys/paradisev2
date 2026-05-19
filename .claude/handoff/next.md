@@ -1,239 +1,189 @@
-# Slice G — Work Hub MVP
+# Slice I — Corporate Mail Mini-game
 
 ## Goal
-Work Hub становится точкой входа в «Работу» вместо прямого открытия сортировки. Текущая мини-игра сортировки — одна из карточек. 2 locked-заглушки для будущих работ.
+Мини-игра «Корпоративная почта» — распределение писем по папкам. Вторая работа в WorkHub (после Сортировки).
 
 ## Context
-Дизайн-документ всей системы: `.claude/plans/work-expansion.md` (читать перед реализацией для понимания общей картины).
+Дизайн-документ: `.claude/plans/work-expansion.md` раздел 4.2.
 
 Сейчас:
-- Клик «Работа» на Desktop → сразу `WorkProgram.tscn` (сортировка слов).
-- WorkProgram открывается через SCENE_PATHS["work"] в Run1.gd и Run2.gd.
-- WorkProgram имеет finish_panel с кнопкой «Закончить» → emit `program_closed`.
-- После program_closed → открывается Desktop (через `_on_program_closed` в Run1/Run2).
+- WorkHub показывает 1 активную карточку (Сортировка) и 2 заблокированных (Почта, Фиксы).
+- WorkResult (Slice H) готов и переиспользуется всеми мини-играми.
+- WorkHub хостит мини-игры в `GameHost`, переподключает кнопки.
+- `WorkProgram` (сортировка) использует `_show_work_result()` → WorkResult.
 
 Нужно:
-- Вставить WorkHub между Desktop и мини-игрой.
-- WorkHub показывает доступные и заблокированные работы.
-- После мини-игры — возврат в WorkHub, а не на Desktop.
-- Из WorkHub можно уйти на Desktop (назад).
+- Создать `MailSortGame` — мини-игру с письмами и 4 папками.
+- Сделать карточку «Корпоративная почта» активной в WorkHub (Run 2).
+- Интегрировать с WorkResult (переиспользовать, не дублировать).
+- Энергия: -2 при старте мини-игры (списывается сразу).
 
 ## Flow
 ```
-Desktop → клик «Работа»
-  → program_open_requested("work")
-    → Run1.gd/Run2.gd → _open_program("work_hub")
-      → WorkHub
-        → клик «Начать» на Сортировке → WorkProgram
-          → «Закончить работу» → emit work_day_finished
-            → WorkHub (принял сигнал, переоткрылся)
-        → клик «Назад» → program_closed → Desktop
+WorkHub → клик «Начать» на Почте
+  → MailSortGame (письма по одному, 4 кнопки-папки)
+    → все письма разобраны (или игрок нажал «Закончить»)
+      → WorkResult (earned, errors, energy_used, quality)
+        → «Вернуться к работе» → WorkHub
+        → «На рабочий стол» → Desktop
 ```
 
 ## Files to touch
 
 ### Новые файлы:
-- `scenes/run2/WorkHub.tscn` — сцена экрана выбора работы
-- `scripts/run2/WorkHub.gd` — логика WorkHub
+- `scenes/run2/MailSortGame.tscn` — сцена мини-игры
+- `scripts/run2/MailSortGame.gd` — логика писем, папок, наград/ошибок
 
 ### Изменяемые файлы:
-- `scripts/run1/Run1.gd` — добавить `"work_hub"` в SCENE_PATHS, `"work"` теперь ведёт на WorkHub
-- `scripts/run2/Run2.gd` — то же самое
-- `scripts/run1/WorkProgram.gd` — кнопка «Закончить» (уже есть finish_panel) → после закрытия emit-ить не `program_closed`, а специальный сигнал для возврата в WorkHub
+- `scenes/run2/WorkHub.tscn` — Card_Mail: заменить locked-лейаут на активный (stats + кнопка)
+- `scripts/run2/WorkHub.gd` — добавить `mail_start_button_path`, `_on_start_mail_sorting()`
+- `scripts/core/GameEvents.gd` — если нужны новые сигналы (вероятно нет, `program_closed` + `work_day_finished` уже есть)
 
-## WorkHub spec
+## MailSortGame spec
 
-### Карточки работ:
+### Сатира:
+«Письма от тех, кто тоже не знает, зачем работает. Твой долг — рассортировать их так, чтобы никто ничего не заметил.»
 
-1. **Сортировка задач** (доступна)
-   - Название: «Сортировка задач»
-   - Описание: «Раскидай слова по категориям. Проще чем звучит. Буквально.»
-   - Награда: «3–30$»
-   - Энергия: «-1 за категорию»
-   - Риск: «Низкий»
-   - Кнопка: «Начать»
+### Механика:
+- Игроку показывается 5–7 писем **по одному**.
+- Каждое письмо: отправитель + тема + короткий текст (1–2 предложения).
+- 4 кнопки-папки: **«Срочно»**, **«Игнорировать»**, **«Делегировать»**, **«Шаблон»**.
+- После выбора папки → мгновенный фидбек (правильно/нейтрально/ошибка) → следующее письмо.
+- После последнего письма → `_show_work_result()` (как в WorkProgram).
 
-2. **Корпоративная почта** (заблокирована)
-   - Название: «Корпоративная почта»
-   - Описание: «Откроется позже»
-   - Замок, серая
-   - Кнопка: нет / disabled
+### Награда / штраф:
+- Правильная папка: **+$4**
+- Нейтральная папка: **+$1**
+- Ошибочная папка: **−$2**
+- Пропущено важное (ловушка от начальника): **−$5**
+- Бонус за все правильные: **+$5** («Идеальный сортировщик»)
+- Энергия: **−2** за сессию (списывается при старте)
 
-3. **Фикс багов** (заблокирована)
-   - Название: «Фикс багов»
-   - Описание: «Откроется позже»
-   - Замок, серая
-   - Кнопка: нет / disabled
-
-### Структура сцены WorkHub:
+### Структура сцены MailSortGame:
 ```
-WorkHub (Control, anchor full_rect)
-├── TopBar (HBoxContainer)
-│   ├── Title (Label: «Работа»)
-│   ├── Spacer
-│   └── BackBtn (Button: «Назад»)
-├── ScrollContainer
-│   └── CardsList (VBoxContainer)
-│       ├── Card_Sorting (PanelContainer) — доступна
-│       ├── Card_Mail (PanelContainer) — заблокирована
-│       └── Card_Bugfix (PanelContainer) — заблокирована
-└── BottomInfo (Label: «Энергия: X/Y»)
+MailSortGame (Control, anchor full_rect)
+├── Bg (ColorRect, тёмно-синий/фиолетовый оттенок)
+├── Margin (MarginContainer)
+│   └── Layout (VBoxContainer)
+│       ├── TopBar (HBoxContainer)
+│       │   ├── BackBtn (Button: «← Назад»)
+│       │   ├── Spacer
+│       │   ├── ProgressLabel (Label: «Письмо 1/6»)
+│       │   └── EarnedLabel (Label: «+0$»)
+│       ├── EmailPanel (PanelContainer, стилизованный)
+│       │   └── VBox
+│       │       ├── SenderLabel (Label: «От: Михаил, отдел синергии»)
+│       │       ├── SubjectLabel (Label: «Синхронизация по созвону», bold)
+│       │       └── BodyLabel (Label: «Коллеги, предлагаю...», autowrap)
+│       └── FoldersBox (HBoxContainer, 4 кнопки)
+│           ├── UrgentBtn (Button: «🚨 Срочно»)
+│           ├── IgnoreBtn (Button: «🗑 Игнорировать»)
+│           ├── DelegateBtn (Button: «👥 Делегировать»)
+│           └── TemplateBtn (Button: «📋 Шаблон»)
 ```
 
-### Карточка (доступная):
+### Формат пула писем (в скрипте):
+```gdscript
+const EMAILS: Array[Dictionary] = [
+    {
+        "sender": "Михаил, отдел синергии",
+        "subject": "Синхронизация по созвону",
+        "body": "Коллеги, предлагаю синхронизироваться по вчерашнему созвону. Когда всем удобно?",
+        "correct": "ignore",       # «Игнорировать»
+        "neutral": "template",     # «Шаблон»
+        "trap": false,             # не ловушка
+    },
+    {
+        "sender": "Анна, HR",
+        "subject": "Срочно: опрос удовлетворённости",
+        "body": "Заполните до конца дня. Это обязательно. Да. Прямо сейчас.",
+        "correct": "urgent",
+        "neutral": "template",
+        "trap": true,              # если проигнорировать → -$5
+    },
+    # ... ещё 16–18 писем
+]
 ```
-PanelContainer
-├── MarginContainer
-│   └── HBoxContainer
-│       ├── Info (VBoxContainer)
-│       │   ├── Name (Label, bold, крупный)
-│       │   ├── Description (Label, autowrap)
-│       │   └── Stats (HBoxContainer — награда / энергия / риск, мелкие Label)
+
+### Типы писем (разнообразие):
+1. **Обычное рабочее** (10 шт) — 1 правильная папка, 1 нейтральная, 2 ошибочные.
+2. **Письмо-ловушка от начальника** (3 шт) — выглядит как спам, но `trap: true`. Если «Игнорировать» → −$5.
+3. **Письмо от AI-агента** (2 шт) — агент сам себя в копии, отвечать бессмысленно.
+4. **Приглашение на митинг** (2 шт) — любое действие кроме «Игнорировать» + «Шаблон» считается ошибкой.
+5. **Спам** (3 шт) — правильное = «Игнорировать», нейтральное = «Шаблон».
+
+### Логика `_on_folder_picked(folder: String)`:
+```gdscript
+var email: Dictionary = _current_email
+if folder == email["correct"]:
+    _earned += 4
+    _show_feedback("Правильно", Color.GREEN)
+elif folder == email.get("neutral", ""):
+    _earned += 1
+    _show_feedback("Сойдёт", Color.YELLOW)
+else:
+    _earned -= 2
+    _errors += 1
+    _show_feedback("Ошибка", Color.RED)
+    if email.get("trap", false) and folder == "ignore":
+        _earned -= 5  # дополнительный штраф за игнор начальника
+
+_next_email()
+```
+
+### Интеграция с WorkHub:
+- Card_Mail в WorkHub.tscn получает stats (5–25$, -2 энергии, Риск: Средний) и кнопку «Начать».
+- WorkHub.gd: новый `@export var mail_start_button_path: NodePath`, новый метод `_on_start_mail_sorting()`.
+- `_on_start_mail_sorting()`: списать 2 энергии, загрузить MailSortGame, инстанциировать в GameHost.
+- Переподключить `_back_button` в MailSortGame → `_on_game_return`.
+- Подписаться на `work_day_finished` → найти WorkResult → подключить `return_to_hub` (как в `_on_start_sorting`).
+- **В Run 1 карточка Почты остаётся заблокированной** — условие: `_run.current_day >= 2`.
+
+### Кнопка «Закончить»:
+В отличие от сортировки (где нужно разобрать все слова), в Почте игрок может захотеть закончить досрочно. Добавить кнопку «Закончить» в TopBar:
+- Если игрок нажал «Закончить» до того как разобрал все письма — оставшиеся письма не учитываются, показывается WorkResult с текущим результатом.
+- Если все письма разобраны — авто-показ WorkResult.
+
+## WorkHub.tscn — Card_Mail (активная версия)
+
+Заменить текущий locked-лейаут на:
+```
+Card_Mail (PanelContainer, theme_override_styles/panel = StyleBoxFlat_sorting)
+├── Margin (MarginContainer, margin 12/8/12/8)
+│   └── Row (HBoxContainer)
+│       ├── Info (VBoxContainer, size_flags_horizontal=3)
+│       │   ├── NameLabel (Label: «Корпоративная почта», font_size=20, WHITE)
+│       │   ├── DescLabel (Label: «Рассортируй письма по папкам. Игнорировать — тоже ответ.», font_size=14, autowrap)
+│       │   └── StatsBox (HBoxContainer)
+│       │       ├── RewardLabel (Label: «5–25$», зеленоватый)
+│       │       ├── CostLabel (Label: «-2 энергии», серый)
+│       │       └── RiskLabel (Label: «Риск: Средний», желтоватый)
 │       └── StartBtn (Button: «Начать»)
 ```
 
-### Карточка (заблокированная):
-```
-Серая/приглушённая. Вместо кнопки — иконка замка или текст «🔒».
-```
-
-## Схема сигналов
-
-WorkProgram уже эмитит `GameEvents.work_day_finished(earned)` когда finish_panel появляется. Сейчас это только ловится в Run1/Run2 (и ничего не делает). Надо:
-
-1. WorkHub подписывается на `work_day_finished` — когда прилетает, переоткрывает сам себя (заменяет WorkProgram на WorkHub).
-2. WorkProgram: кнопка «Закончить» в finish_panel → emit `work_day_finished` И `program_closed` НЕ эмитить.
-3. Либо лучше: WorkHub сам управляет навигацией. WorkProgram просто эмитит `work_day_finished`, а WorkHub слушает и переключает вид.
-
-**Вариант реализации (проще):**
-- WorkHub при запуске мини-игры убирает себя (queue_free или visible=false), добавляет мини-игру в тот же program_host.
-- Мини-игра при завершении эмитит `work_day_finished`.
-- WorkHub ловит сигнал → заново показывает себя.
-- WorkHub не нужно пересоздавать — можно использовать visible.
-
-**Альтернатива (ещё проще):**
-- WorkHub — это отдельная сцена, которая открывается через program_host в Run1/Run2.
-- При клике «Начать» WorkHub эмитит `program_open_requested("work_sorting")` (новый id).
-- Run1/Run2 знают `"work_sorting"` → WorkProgram.
-- WorkProgram при завершении эмитит `program_closed` → Run1/Run2 открывает `"work_hub"`.
-- WorkHub при «Назад» эмитит `program_closed` → Desktop.
-
-**Выбираем альтернативу** — она чище и использует существующий механизм роутинга. Меньше переделок.
-
-### Новая схема SCENE_PATHS:
-```gdscript
-# Run1.gd и Run2.gd:
-const SCENE_PATHS: Dictionary = {
-    "desktop": "res://scenes/run1/Desktop.tscn",
-    "work_hub": "res://scenes/run2/WorkHub.tscn",
-    "work_sorting": "res://scenes/run1/WorkProgram.tscn",
-    "dating": "res://scenes/run1/DatingProgram.tscn",
-    "mail": "res://scenes/run1/MailProgram.tscn",
-    # ... остальное
-}
-```
-
-### WorkHub.gd логика:
-```gdscript
-# Кнопка «Начать» для sorting:
-_start_sorting_btn.pressed.connect(func():
-    GameEvents.program_open_requested.emit("work_sorting")
-)
-
-# Кнопка «Назад»:
-_back_btn.pressed.connect(func():
-    GameEvents.program_closed.emit()
-)
-
-# При показе — обновить статус энергии:
-func _ready():
-    _update_energy_display()
-    GameEvents.energy_changed.connect(_on_energy_changed)
-
-# Заблокированные карточки — кнопки disabled, modulate тусклый.
-```
-
-### WorkProgram.gd — изменение:
-Текущая finish_panel кнопка эмитит `program_closed`. Нужно:
-```gdscript
-_finish_button.pressed.connect(func():
-    GameEvents.program_closed.emit()
-)
-# Оставить как есть. WorkHub через Run1/Run2 получит управление.
-```
-
-Стоп. Сейчас `_on_program_closed` в Run1/Run2 всегда открывает `"desktop"`. А нам нужно чтобы после WorkProgram открывался WorkHub.
-
-**Решение:** WorkHub при открытии (в _ready) устанавливает флаг или просто Run1/Run2 отслеживают что последним был WorkHub и после закрытия дочерней программы возвращаются в WorkHub, а не на Desktop.
-
-**Самое простое решение:** WorkHub использует свой собственный program_host внутри себя для запуска мини-игр. То есть WorkHub — это полноценная сцена-контейнер со своим program_host. Мини-игра инстанциируется внутрь WorkHub, а не наружу.
-
-```gdscript
-# WorkHub.gd
-@export var game_host_path: NodePath  # Control для размещения мини-игры
-@onready var _game_host: Control = get_node(game_host_path)
-
-func _start_work(scene_path: String):
-    _cards_container.visible = false  # прячем список
-    var scene = load(scene_path)
-    var game = scene.instantiate()
-    _game_host.add_child(game)
-    if game is Control:
-        game.anchor_right = 1
-        game.anchor_bottom = 1
-    # Слушаем когда игра закончится
-    GameEvents.work_day_finished.connect(_on_game_finished, CONNECT_ONE_SHOT)
-
-func _on_game_finished(_earned: int):
-    for c in _game_host.get_children():
-        c.queue_free()
-    _cards_container.visible = true
-    _update_energy_display()
-```
-
-Но это дублирует логику Run1/Run2. Чтобы избежать дублирования...
-
-**Финальное решение (самое чистое):**
-- WorkHub НЕ использует SCENE_PATHS роутинг Run1/Run2.
-- WorkHub вставляет мини-игру в свой собственный `game_host` (Control, anchor full_rect поверх карточек).
-- WorkHub скрывает список карточек, показывает game_host, инстанциирует мини-игру.
-- Мини-игра при завершении эмитит `work_day_finished`.
-- WorkHub ловит, чистит game_host, показывает список снова.
-- Кнопка «Назад» → `program_closed` → Run1/Run2 → Desktop.
-
-Это проще и не требует менять роутинг в Run1/Run2. WorkHub становится самодостаточным контейнером.
-
-### Сцена WorkHub (финальная структура):
-```
-WorkHub (Control, anchor full_rect)
-├── TopBar (HBoxContainer)
-│   ├── Title (Label: «Работа»)
-│   ├── Spacer
-│   ├── EnergyLabel (Label: «Энергия 8/8»)
-│   └── BackBtn (Button: «Назад»)
-├── CardsContainer (ScrollContainer / VBoxContainer)
-│   ├── Card_Sorting (PanelContainer)
-│   ├── Card_Mail (PanelContainer, locked)
-│   └── Card_Bugfix (PanelContainer, locked)
-└── GameHost (Control, anchor full_rect, visible=false)
-    (сюда инстанциируется WorkProgram)
-```
+StyleBoxFlat_sorting уже есть в сцене — переиспользовать.
 
 ## Acceptance
-- [ ] Клик «Работа» на Desktop (Run 1 и Run 2) → открывается WorkHub.
-- [ ] WorkHub показывает 1 доступную карточку «Сортировка задач» с кнопкой «Начать».
-- [ ] WorkHub показывает 2 заблокированные карточки «Корпоративная почта» и «Фикс багов».
-- [ ] Кнопка «Начать» на Сортировке → открывается WorkProgram поверх карточек.
-- [ ] Кнопка «Закончить работу» в WorkProgram → скрывается WorkProgram, показываются карточки WorkHub.
-- [ ] Кнопка «Назад» в WorkHub → возврат на Desktop (через program_closed).
-- [ ] Отображение текущей энергии в WorkHub обновляется.
-- [ ] Когда энергия = 0, кнопка «Начать» заблокирована.
-- [ ] Playtest через MCP: `play_scene` → клик «Работа» → WorkHub → «Начать» → сортировка → «Закончить» → WorkHub → «Назад» → Desktop.
+- [ ] В Run 2 WorkHub показывает «Корпоративную почту» как доступную (зелёная карточка, кнопка «Начать»).
+- [ ] В Run 1 Почта остаётся заблокированной.
+- [ ] Кнопка «Начать» на Почте → списывается 2 энергии → открывается MailSortGame.
+- [ ] Показывается письмо с отправителем, темой, текстом и 4 кнопками папок.
+- [ ] Правильный выбор папки → +4$, зелёный фидбек.
+- [ ] Нейтральный выбор → +1$, жёлтый фидбек.
+- [ ] Ошибочный выбор → −2$, красный фидбек.
+- [ ] Письмо-ловушка: если «Игнорировать» → дополнительный −5$.
+- [ ] После последнего письма → WorkResult с итогами.
+- [ ] Кнопка «Закончить» досрочно → WorkResult с текущим результатом.
+- [ ] «Вернуться к работе» в WorkResult → WorkHub.
+- [ ] «На рабочий стол» в WorkResult → Desktop.
+- [ ] Прогресс-лейбл обновляется («Письмо 3/6»).
+- [ ] Playtest через MCP: Desktop → WorkHub → Почта → разобрать письма → WorkResult → WorkHub.
 
 ## Out of scope (НЕ делать в этом слайсе)
-- Не реализовывать новые мини-игры (mail_sort, bugfix, meeting и т.д.)
-- Не добавлять апгрейды и агентов
-- Не менять баланс сортировки
-- Не добавлять WorkResult (пока finish_panel остаётся как есть)
-- Не менять Desktop / Desktop2
-- Не трогать Run Service — энергия и цели дня работают как раньше
+- Не добавлять апгрейды `reply_templates` и `spam_filter`.
+- Не добавлять агента `mail_demon`.
+- Не делать анимации перехода между письмами.
+- Не менять баланс других мини-игр.
+- Не трогать карточку «Фикс багов» (остаётся locked).
+- Не добавлять новые сигналы в GameEvents (использовать существующие `work_day_finished`, `program_closed`).
+- Не рефакторить `WorkHub._on_start_sorting` и `_on_game_finished` в общий метод (это преждевременная абстракция для 2 игр; на 3-й игре — вынесем).

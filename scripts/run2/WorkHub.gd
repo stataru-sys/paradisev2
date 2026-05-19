@@ -46,7 +46,7 @@ func _on_start_sorting() -> void:
 	game.anchor_bottom = 1
 
 	_reconnect_game_button(game, "_back_button")
-	_reconnect_game_button(game, "_finish_button")
+	GameEvents.work_day_finished.connect(_on_game_finished, CONNECT_ONE_SHOT)
 
 func _reconnect_game_button(game: Control, prop_name: String) -> void:
 	var btn: Button = game.get(prop_name) as Button
@@ -55,6 +55,15 @@ func _reconnect_game_button(game: Control, prop_name: String) -> void:
 	for conn: Dictionary in btn.pressed.get_connections():
 		btn.pressed.disconnect(conn["callable"])
 	btn.pressed.connect(_on_game_return)
+
+func _on_game_finished(_earned: int) -> void:
+	var game: Node = _game_host.get_child(0) if _game_host.get_child_count() > 0 else null
+	if game == null:
+		return
+	for c: Node in game.get_children():
+		if c.name == "WorkResult" and c.has_signal("return_to_hub"):
+			c.connect("return_to_hub", _on_game_return)
+			return
 
 func _on_game_return() -> void:
 	for c: Node in _game_host.get_children():
