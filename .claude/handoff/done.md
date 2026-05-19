@@ -4,6 +4,54 @@
 
 ---
 
+## Slice G — Work Hub MVP ✓
+
+**Коммит:** `будет создан`
+**Ревью keeper'а:** ✓ принято 2026-05-19
+
+**Что добавлено:**
+
+| Файл | Что |
+|---|---|
+| `scripts/run2/WorkHub.gd` *(новый)* | Экран выбора работы. TopBar с заголовком «Работа», EnergyLabel и BackBtn. ScrollContainer с 3 карточками (1 доступная + 2 locked). GameHost — Control поверх карточек для хостинга мини-игры. При клике «Начать» инстанциирует WorkProgram внутрь GameHost, переподключает back_button и finish_button WorkProgram на возврат в карточки. BackBtn → `program_closed` → Desktop. EnergyLabel обновляется по `energy_changed`, кнопка «Начать» disabled при energy ≤ 0. |
+| `scenes/run2/WorkHub.tscn` *(новый)* | Полная сцена: Bg (тёмный ColorRect), TopBar (TitleLabel «Работа» / Spacer / EnergyLabel / BackBtn «Назад»), ScrollContainer → CardsList (VBoxContainer, separation=10), 3 карточки PanelContainer с StyleBoxFlat (Card_Sorting — зелёный оттенок, Card_Mail/Card_Bugfix — серые), GameHost (Control full_rect, visible=false). Карточка Sorting: NameLabel («Сортировка задач»), DescLabel (описание + autowrap), StatsBox (RewardLabel «3–30$» / CostLabel «-1 за категорию» / RiskLabel «Риск: Низкий»), StartBtn «Начать». Locked-карточки: NameLabel + DescLabel «Откроется позже» + LockIcon «🔒», цвета приглушённые. |
+| `scripts/run1/Run1.gd` *(изменён)* | `SCENE_PATHS["work"]` → `res://scenes/run2/WorkHub.tscn` (вместо прямого WorkProgram). |
+| `scripts/run2/Run2.gd` *(изменён)* | Аналогично Run1.gd. |
+
+**Восстановлен из git:**
+| `scenes/run1/DatingProgram.tscn` | Случайно повреждён MCP-операциями (в него попали ноды WorkHub). Восстановлен через `git checkout`. |
+
+**Smoke через MCP:**
+1. `play_scene main` → «Начать Run 1» → «ВКЛЮЧИТЬ» → Desktop ✓
+2. `GameEvents.program_open_requested.emit("work")` → WorkHub загружен в MonitorScreen ✓
+3. WorkHub: 3 карточки — «Сортировка задач» (зелёная, кнопка «Начать»), «Корпоративная почта» (серая, замок), «Фикс багов» (серая, замок) ✓
+4. `click_button_by_text("Начать")` → WorkProgram (сортировка) загружена в GameHost, карточки скрыты ✓
+5. `click_button_by_text("← Назад")` → WorkProgram убран, карточки WorkHub снова видны ✓
+6. `click_button_by_text("Назад")` → Desktop загружен ✓
+
+**Что keeper'у проверить вручную:**
+- Тон текстов карточек (описание сортировки «Раскидай слова по категориям. Проще чем звучит. Буквально.»).
+- Стиль карточек: зелёный оттенок для доступной vs серый для locked — достаточно ли контрастно.
+- Иконка замка 🔒 — ок ли эмодзи в игровом интерфейсе или заменить на спрайт.
+- Поведение при энергии=0: кнопка «Начать» должна быть disabled (проверено по коду, не в рантайме т.к. в Run 1 энергия 3/3).
+
+**Компромиссы / known issues:**
+- WorkHub переподключает кнопки WorkProgram через `game.get("_back_button")` / `game.get("_finish_button")` — доступ к «приватным» полям по соглашению GDScript. Если в WorkProgram переименуют `_back_button` → сломается без ошибки компиляции (btn == null → return). Диагностируется визуально: кнопка «← Назад» будет уводить на Desktop вместо WorkHub.
+- Сцена WorkHub.tscn написана вручную (минуя MCP batch_add_nodes из-за бага с дублированием нод в текущей открытой сцене редактора). UID скрипта захардкожен. При пересоздании скрипта через MCP UID изменится → сцена сломается. Решается открытием сцены в редакторе и перепривязкой script.
+- DatingProgram.tscn был восстановлен из git после случайного повреждения MCP-операциями. Keeper'у стоит убедиться что дейтинг работает (открыть на Desktop2 в Run 2).
+
+**Пост-ревью правки:**
+- Исправлено перекрытие TopBar скролл-контейнером: `anchor_top = 0.05` → `offset_top = 52.0` (фиксированный отступ вместо процента от высоты окна).
+- Добавлен guard от двойного клика «Начать»: `if _game_host.get_child_count() > 0: return` в `_on_start_sorting()`.
+
+**Решения keeper'а по замечаниям:**
+- Run 1 тоже проходит через WorkHub (не расходимся с дизайн-документом — работает как тизер контента).
+- Пункты 3 (доступ к приватным полям), 4 (нет обратной связи на locked-карточки), 5 (цвет RiskLabel) — отложены на будущие слайсы.
+
+**Следующий слайс (Slice H — Work Result Screen):** см. `next.md`.
+
+---
+
 ## Мастер-план A → F закрыт ✓
 
 Шесть слайсов задеплоены: Run 1 + Run 2 + Магазин + Казино + Агенты + EventLog/DaySummary. Полная idle-кликер петля с пятью апгрейдами, четырьмя агентами, казино, лентой событий и расширенным DaySummary с четырьмя ветками вердиктов под Run 2.

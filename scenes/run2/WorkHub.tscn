@@ -1,0 +1,236 @@
+[gd_scene format=3 uid="uid://bs1u36am7pl85"]
+
+[ext_resource type="Script" uid="uid://d3c2ws3eq611p" path="res://scripts/run2/WorkHub.gd" id="1_workhub"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sorting"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.102, 0.165, 0.102, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.165, 0.29, 0.165, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_locked"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.102, 0.102, 0.102, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.165, 0.165, 0.165, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="WorkHub" type="Control" unique_id=1223518167]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_workhub")
+energy_label_path = NodePath("TopBar/EnergyLabel")
+back_button_path = NodePath("TopBar/BackBtn")
+cards_list_path = NodePath("ScrollContainer")
+start_sorting_button_path = NodePath("ScrollContainer/CardsList/Card_Sorting/Margin/Row/StartBtn")
+game_host_path = NodePath("GameHost")
+
+[node name="Bg" type="ColorRect" parent="." unique_id=408875303]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="." unique_id=1428369730]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 0
+anchor_right = 1.0
+
+[node name="TitleLabel" type="Label" parent="TopBar" unique_id=1851605498]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "Работа"
+
+[node name="Spacer" type="Control" parent="TopBar" unique_id=374895273]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EnergyLabel" type="Label" parent="TopBar" unique_id=2095090703]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.667, 0.8, 0.933, 1)
+theme_override_font_sizes/font_size = 16
+text = "Энергия 0/0"
+
+[node name="BackBtn" type="Button" parent="TopBar" unique_id=1275401387]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Назад"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1810196848]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 52.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardsList" type="VBoxContainer" parent="ScrollContainer" unique_id=1296591051]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Card_Sorting" type="PanelContainer" parent="ScrollContainer/CardsList" unique_id=587572145]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sorting")
+
+[node name="Margin" type="MarginContainer" parent="ScrollContainer/CardsList/Card_Sorting" unique_id=480583866]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Row" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Sorting/Margin" unique_id=2136343079]
+layout_mode = 2
+
+[node name="Info" type="VBoxContainer" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row" unique_id=426989784]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row/Info" unique_id=471836923]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Сортировка задач"
+
+[node name="DescLabel" type="Label" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row/Info" unique_id=244302173]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.533, 0.6, 0.667, 1)
+theme_override_font_sizes/font_size = 14
+text = "Раскидай слова по категориям. Проще чем звучит. Буквально."
+autowrap_mode = 3
+
+[node name="StatsBox" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row/Info" unique_id=470497270]
+layout_mode = 2
+
+[node name="RewardLabel" type="Label" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row/Info/StatsBox" unique_id=954824200]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.467, 0.6, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "3–30$"
+
+[node name="CostLabel" type="Label" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row/Info/StatsBox" unique_id=2031871592]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.533, 0.533, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "-1 за категорию"
+
+[node name="RiskLabel" type="Label" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row/Info/StatsBox" unique_id=1711867657]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.533, 0.667, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "Риск: Низкий"
+
+[node name="StartBtn" type="Button" parent="ScrollContainer/CardsList/Card_Sorting/Margin/Row" unique_id=2049169852]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Начать"
+
+[node name="Card_Mail" type="PanelContainer" parent="ScrollContainer/CardsList" unique_id=1938561050]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_locked")
+
+[node name="Margin" type="MarginContainer" parent="ScrollContainer/CardsList/Card_Mail" unique_id=1422681303]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Mail/Margin" unique_id=1559256075]
+layout_mode = 2
+
+[node name="Info" type="VBoxContainer" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row" unique_id=417201193]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info" unique_id=564700072]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.333, 0.4, 0.4, 1)
+text = "Корпоративная почта"
+
+[node name="DescLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info" unique_id=210205840]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.267, 0.333, 0.333, 1)
+text = "Откроется позже"
+autowrap_mode = 3
+
+[node name="LockIcon" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row" unique_id=209343889]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.267, 0.333, 0.4, 1)
+text = "🔒"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Card_Bugfix" type="PanelContainer" parent="ScrollContainer/CardsList" unique_id=162897812]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_locked")
+
+[node name="Margin" type="MarginContainer" parent="ScrollContainer/CardsList/Card_Bugfix" unique_id=770228132]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin" unique_id=1292827587]
+layout_mode = 2
+
+[node name="Info" type="VBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row" unique_id=570409868]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=1210909376]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.333, 0.4, 0.4, 1)
+text = "Фикс багов"
+
+[node name="DescLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=1562825910]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.267, 0.333, 0.333, 1)
+text = "Откроется позже"
+autowrap_mode = 3
+
+[node name="LockIcon" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row" unique_id=1037872095]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.267, 0.333, 0.4, 1)
+text = "🔒"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameHost" type="Control" parent="." unique_id=1462163181]
+visible = false
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1

@@ -5,7 +5,7 @@ extends Control
 
 const SCENE_PATHS: Dictionary = {
 	"desktop": "res://scenes/run1/Desktop.tscn",
-	"work": "res://scenes/run1/WorkProgram.tscn",
+	"work": "res://scenes/run2/WorkHub.tscn",
 	"dating": "res://scenes/run1/DatingProgram.tscn",
 	"mail": "res://scenes/run1/MailProgram.tscn",
 }
