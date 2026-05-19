@@ -46,6 +46,7 @@ energy_label_path = NodePath("TopBar/EnergyLabel")
 back_button_path = NodePath("TopBar/BackBtn")
 cards_list_path = NodePath("ScrollContainer")
 start_sorting_button_path = NodePath("ScrollContainer/CardsList/Card_Sorting/Margin/Row/StartBtn")
+mail_start_button_path = NodePath("ScrollContainer/CardsList/Card_Mail/Margin/Row/StartBtn")
 game_host_path = NodePath("GameHost")
 
 [node name="Bg" type="ColorRect" parent="." unique_id=408875303]
@@ -163,10 +164,14 @@ text = "Начать"
 [node name="Card_Mail" type="PanelContainer" parent="ScrollContainer/CardsList" unique_id=1938561050]
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_locked")
+theme_override_styles/panel = SubResource("StyleBoxFlat_sorting")
 
 [node name="Margin" type="MarginContainer" parent="ScrollContainer/CardsList/Card_Mail" unique_id=1422681303]
 layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
 
 [node name="Row" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Mail/Margin" unique_id=1559256075]
 layout_mode = 2
@@ -177,22 +182,46 @@ size_flags_horizontal = 3
 
 [node name="NameLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info" unique_id=564700072]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.333, 0.4, 0.4, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 text = "Корпоративная почта"
 
 [node name="DescLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info" unique_id=210205840]
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.267, 0.333, 0.333, 1)
-text = "Откроется позже"
+theme_override_colors/font_color = Color(0.533, 0.6, 0.667, 1)
+theme_override_font_sizes/font_size = 14
+text = "Рассортируй письма по папкам. Игнорировать — тоже ответ."
 autowrap_mode = 3
 
-[node name="LockIcon" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row" unique_id=209343889]
-custom_minimum_size = Vector2(50, 0)
+[node name="StatsBox" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info" unique_id=1555839291]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.267, 0.333, 0.4, 1)
-text = "🔒"
-horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="RewardLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info/StatsBox" unique_id=452373391]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.467, 0.6, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "5–25$"
+
+[node name="CostLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info/StatsBox" unique_id=92640073]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.533, 0.533, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "-2 энергии"
+
+[node name="RiskLabel" type="Label" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row/Info/StatsBox" unique_id=588594612]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.667, 0.667, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Риск: Средний"
+
+[node name="StartBtn" type="Button" parent="ScrollContainer/CardsList/Card_Mail/Margin/Row" unique_id=835375659]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Начать"
 
 [node name="Card_Bugfix" type="PanelContainer" parent="ScrollContainer/CardsList" unique_id=162897812]
 custom_minimum_size = Vector2(0, 140)
