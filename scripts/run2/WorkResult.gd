@@ -34,7 +34,7 @@ func _ready() -> void:
 	(get_node(hub_button_path) as Button).pressed.connect(func() -> void: return_to_hub.emit())
 	(get_node(desktop_button_path) as Button).pressed.connect(func() -> void: GameEvents.program_closed.emit())
 
-func setup(earned: int, errors: int, energy_used: int) -> void:
+func setup(earned: int, errors: int, energy_used: int, comment_override: String = "") -> void:
 	var earned_label: Label = get_node(earned_label_path) as Label
 	earned_label.text = "Заработано: +%d$" % earned
 
@@ -57,7 +57,10 @@ func setup(earned: int, errors: int, energy_used: int) -> void:
 	quality_label.text = "Качество: %s" % quality
 
 	var comment_label: Label = get_node(comment_label_path) as Label
-	comment_label.text = comment_pool[randi() % comment_pool.size()]
+	if comment_override.is_empty():
+		comment_label.text = comment_pool[randi() % comment_pool.size()]
+	else:
+		comment_label.text = comment_override
 
 	var errors_label: Label = get_node(errors_label_path) as Label
 	if errors > 0:

@@ -1,0 +1,115 @@
+[gd_scene format=3 uid="uid://o3hcqrmb31hh"]
+
+[ext_resource type="Script" uid="uid://by533ekta4xjd" path="res://scripts/run2/BugfixGame.gd" id="1_om75v"]
+
+[node name="BugfixGame" type="Control" unique_id=654642575]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_om75v")
+progress_label_path = NodePath("Margin/Layout/TopBar/ProgressLabel")
+earned_label_path = NodePath("Margin/Layout/TopBar/EarnedLabel")
+back_button_path = NodePath("Margin/Layout/TopBar/BackBtn")
+bugs_box_path = NodePath("Margin/Layout/GameArea/BugsColumn/BugsBox")
+fixes_box_path = NodePath("Margin/Layout/GameArea/FixesColumn/FixesBox")
+feedback_label_path = NodePath("Margin/Layout/FeedbackLabel")
+
+[node name="Bg" type="ColorRect" parent="." unique_id=564715416]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.12, 0.075, 0.085, 1)
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=263679190]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="Layout" type="VBoxContainer" parent="Margin" unique_id=331678815]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/Layout" unique_id=923824724]
+layout_mode = 2
+
+[node name="BackBtn" type="Button" parent="Margin/Layout/TopBar" unique_id=855898164]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "← Назад"
+
+[node name="Spacer" type="Control" parent="Margin/Layout/TopBar" unique_id=815355720]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ProgressLabel" type="Label" parent="Margin/Layout/TopBar" unique_id=1102371688]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 16
+text = "Багов: 3"
+
+[node name="EarnedLabel" type="Label" parent="Margin/Layout/TopBar" unique_id=2092041162]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.467, 0.8, 0.533, 1)
+theme_override_font_sizes/font_size = 16
+text = "+0$"
+horizontal_alignment = 2
+
+[node name="GameArea" type="HBoxContainer" parent="Margin/Layout" unique_id=924027626]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="BugsColumn" type="VBoxContainer" parent="Margin/Layout/GameArea" unique_id=947200977]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BugsHeader" type="Label" parent="Margin/Layout/GameArea/BugsColumn" unique_id=1809706062]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.867, 0.45, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "Баги"
+horizontal_alignment = 1
+
+[node name="BugsBox" type="VBoxContainer" parent="Margin/Layout/GameArea/BugsColumn" unique_id=721364808]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ColumnGap" type="Control" parent="Margin/Layout/GameArea" unique_id=945786558]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+
+[node name="FixesColumn" type="VBoxContainer" parent="Margin/Layout/GameArea" unique_id=1651532823]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="FixesHeader" type="Label" parent="Margin/Layout/GameArea/FixesColumn" unique_id=2034472979]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.78, 0.55, 1)
+theme_override_font_sizes/font_size = 18
+text = "Фиксы"
+horizontal_alignment = 1
+
+[node name="FixesBox" type="VBoxContainer" parent="Margin/Layout/GameArea/FixesColumn" unique_id=1819161387]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="FeedbackLabel" type="Label" parent="Margin/Layout" unique_id=582572990]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+autowrap_mode = 3

@@ -4,13 +4,16 @@ extends Control
 
 const WORK_PROGRAM_SCENE: String = "res://scenes/run1/WorkProgram.tscn"
 const MAIL_SORT_SCENE: String = "res://scenes/run2/MailSortGame.tscn"
+const BUGFIX_SCENE: String = "res://scenes/run2/BugfixGame.tscn"
 const MAIL_ENERGY_COST: int = 2
+const BUGFIX_ENERGY_COST: int = 2
 
 @export var energy_label_path: NodePath
 @export var back_button_path: NodePath
 @export var cards_list_path: NodePath
 @export var start_sorting_button_path: NodePath
 @export var mail_start_button_path: NodePath
+@export var bugfix_start_button_path: NodePath
 @export var game_host_path: NodePath
 
 @onready var _energy_label: Label = get_node(energy_label_path) as Label
@@ -18,6 +21,7 @@ const MAIL_ENERGY_COST: int = 2
 @onready var _cards_list: Control = get_node(cards_list_path) as Control
 @onready var _start_sorting_btn: Button = get_node(start_sorting_button_path) as Button
 @onready var _start_mail_btn: Button = get_node(mail_start_button_path) as Button
+@onready var _start_bugfix_btn: Button = get_node(bugfix_start_button_path) as Button
 @onready var _game_host: Control = get_node(game_host_path) as Control
 @onready var _run: Node = get_node("/root/RunService")
 
@@ -30,29 +34,33 @@ func _ready() -> void:
 
 	if int(_run.current_day) >= 2:
 		_start_mail_btn.pressed.connect(_on_start_mail_sorting)
+		_start_bugfix_btn.pressed.connect(_on_start_bugfix)
 	else:
-		_start_mail_btn.disabled = true
-		_start_mail_btn.text = "🔒"
-		_lock_mail_card()
+		_lock_card("Card_Mail", _start_mail_btn)
+		_lock_card("Card_Bugfix", _start_bugfix_btn)
 
 func _update_energy() -> void:
 	_energy_label.text = "Энергия %d/%d" % [int(_run.energy), int(_run.max_energy)]
 	_start_sorting_btn.disabled = int(_run.energy) <= 0
 	if int(_run.current_day) >= 2:
 		_start_mail_btn.disabled = int(_run.energy) < MAIL_ENERGY_COST
+		_start_bugfix_btn.disabled = int(_run.energy) < BUGFIX_ENERGY_COST
 
 func _on_energy_changed(_current: int, _max_val: int) -> void:
 	_update_energy()
 
-func _on_start_sorting() -> void:
-	if int(_run.energy) <= 0:
+func _start_work_game(scene_path: String, energy_cost: int) -> void:
+	if int(_run.energy) < energy_cost:
 		return
 	if _game_host.get_child_count() > 0:
 		return
+	_run.spend_energy(energy_cost)
 	_cards_list.visible = false
 	_game_host.visible = true
 
-	var scene: PackedScene = load(WORK_PROGRAM_SCENE) as PackedScene
+	var scene: PackedScene = load(scene_path) as PackedScene
+	if scene == null:
+		return
 	var game: Control = scene.instantiate() as Control
 	_game_host.add_child(game)
 	game.anchor_right = 1
@@ -60,6 +68,15 @@ func _on_start_sorting() -> void:
 
 	_reconnect_game_button(game, "_back_button")
 	GameEvents.work_day_finished.connect(_on_game_finished, CONNECT_ONE_SHOT)
+
+func _on_start_sorting() -> void:
+	_start_work_game(WORK_PROGRAM_SCENE, 0)
+
+func _on_start_mail_sorting() -> void:
+	_start_work_game(MAIL_SORT_SCENE, MAIL_ENERGY_COST)
+
+func _on_start_bugfix() -> void:
+	_start_work_game(BUGFIX_SCENE, BUGFIX_ENERGY_COST)
 
 func _reconnect_game_button(game: Control, prop_name: String) -> void:
 	var btn: Button = game.get(prop_name) as Button
@@ -85,30 +102,13 @@ func _on_game_return() -> void:
 	_cards_list.visible = true
 	_update_energy()
 
-func _lock_mail_card() -> void:
-	var desc: Label = get_node("ScrollContainer/CardsList/Card_Mail/Margin/Row/Info/DescLabel") as Label
+func _lock_card(card_name: String, start_btn: Button) -> void:
+	start_btn.disabled = true
+	start_btn.text = "🔒"
+	var info_base: String = "ScrollContainer/CardsList/%s/Margin/Row/Info/" % card_name
+	var desc: Label = get_node_or_null(info_base + "DescLabel") as Label
 	if desc != null:
 		desc.text = "Откроется позже"
-	var stats: Node = get_node_or_null("ScrollContainer/CardsList/Card_Mail/Margin/Row/Info/StatsBox")
+	var stats: Node = get_node_or_null(info_base + "StatsBox")
 	if stats != null:
 		stats.visible = false
-
-func _on_start_mail_sorting() -> void:
-	if int(_run.energy) < MAIL_ENERGY_COST:
-		return
-	if int(_run.current_day) < 2:
-		return
-	if _game_host.get_child_count() > 0:
-		return
-	_run.spend_energy(MAIL_ENERGY_COST)
-	_cards_list.visible = false
-	_game_host.visible = true
-
-	var scene: PackedScene = load(MAIL_SORT_SCENE) as PackedScene
-	var game: Control = scene.instantiate() as Control
-	_game_host.add_child(game)
-	game.anchor_right = 1
-	game.anchor_bottom = 1
-
-	_reconnect_game_button(game, "_back_button")
-	GameEvents.work_day_finished.connect(_on_game_finished, CONNECT_ONE_SHOT)

@@ -18,22 +18,6 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_locked"]
-content_margin_left = 4.0
-content_margin_top = 4.0
-content_margin_right = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0.102, 0.102, 0.102, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.165, 0.165, 0.165, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
 [node name="WorkHub" type="Control" unique_id=1223518167]
 layout_mode = 3
 anchors_preset = 15
@@ -47,6 +31,7 @@ back_button_path = NodePath("TopBar/BackBtn")
 cards_list_path = NodePath("ScrollContainer")
 start_sorting_button_path = NodePath("ScrollContainer/CardsList/Card_Sorting/Margin/Row/StartBtn")
 mail_start_button_path = NodePath("ScrollContainer/CardsList/Card_Mail/Margin/Row/StartBtn")
+bugfix_start_button_path = NodePath("ScrollContainer/CardsList/Card_Bugfix/Margin/Row/StartBtn")
 game_host_path = NodePath("GameHost")
 
 [node name="Bg" type="ColorRect" parent="." unique_id=408875303]
@@ -226,36 +211,64 @@ text = "Начать"
 [node name="Card_Bugfix" type="PanelContainer" parent="ScrollContainer/CardsList" unique_id=162897812]
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_locked")
+theme_override_styles/panel = SubResource("StyleBoxFlat_sorting")
 
-[node name="Margin" type="MarginContainer" parent="ScrollContainer/CardsList/Card_Bugfix" unique_id=770228132]
+[node name="Margin" type="MarginContainer" parent="ScrollContainer/CardsList/Card_Bugfix" unique_id=1831325015]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Row" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin" unique_id=1625991762]
 layout_mode = 2
 
-[node name="Row" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin" unique_id=1292827587]
-layout_mode = 2
-
-[node name="Info" type="VBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row" unique_id=570409868]
+[node name="Info" type="VBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row" unique_id=1204151490]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="NameLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=1210909376]
+[node name="NameLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=1455640773]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.333, 0.4, 0.4, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 text = "Фикс багов"
 
-[node name="DescLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=1562825910]
+[node name="DescLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=1449272796]
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.267, 0.333, 0.333, 1)
-text = "Откроется позже"
+theme_override_colors/font_color = Color(0.533, 0.6, 0.667, 1)
+theme_override_font_sizes/font_size = 14
+text = "Сопоставь баг с правильным фиксом. Ошибка плодит новые баги."
 autowrap_mode = 3
 
-[node name="LockIcon" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row" unique_id=1037872095]
-custom_minimum_size = Vector2(50, 0)
+[node name="StatsBox" type="HBoxContainer" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info" unique_id=485848082]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.267, 0.333, 0.4, 1)
-text = "🔒"
-horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="RewardLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info/StatsBox" unique_id=809667781]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.467, 0.6, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "8–25$"
+
+[node name="CostLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info/StatsBox" unique_id=757143505]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.533, 0.533, 0.533, 1)
+theme_override_font_sizes/font_size = 13
+text = "-2 энергии"
+
+[node name="RiskLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info/StatsBox" unique_id=1681946111]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.467, 0.467, 1)
+theme_override_font_sizes/font_size = 13
+text = "Риск: Высокий"
+
+[node name="StartBtn" type="Button" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row" unique_id=1299580143]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Начать"
 
 [node name="GameHost" type="Control" parent="." unique_id=1462163181]
 visible = false
