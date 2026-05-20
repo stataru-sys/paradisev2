@@ -22,11 +22,13 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 | `.claude/docs/workflow.md` | Описание keeper/coder two-chat workflow + шаблоны `next.md`/`done.md` |
 | `.claude/handoff/next.md` | **Что делать в текущей coder-сессии** (живой документ от keeper'а) |
 | `.claude/handoff/done.md` | Отчёт coder'а после слайса (живой) |
+| `.claude/plans/` | Дизайн-документы фич (напр. `work-expansion.md` — план Work System Expansion G→J) |
 | `.claude/skills/godot-mcp.md` | **Скиллы Godot MCP Pro** — workflow-паттерны и подсказки по 169 MCP-тулам. **Coder читает первым делом перед любой работой через MCP.** |
-| `scripts/core/` | `GameEvents.gd` (autoload-event-bus) + будущие autoload-сервисы (`Economy`, `Run`, `Save`) |
-| `scripts/ui/` | UI-скрипты (`MainMenu.gd`, будущие `HUDController`, `ShopUI` и т.п.) |
-| `scenes/MainMenu.tscn` | main_scene проекта (заглушка под Slice 0, в Slice 1+ — реальное меню) |
-| `resources/{tasks,agents,implants,dialogues,fails}/` | `.tres`-ресурсы — единственный способ хранить контент |
+| `scripts/core/` | Autoload-сервисы: `GameEvents.gd` (event-bus), `Economy.gd`, `RunService.gd` |
+| `scripts/ui/` | Общие UI-скрипты: `MainMenu.gd`, `MainScene.gd` (роутер run-ов), `EventLog.gd` |
+| `scripts/run1/`, `scripts/run2/` | Скрипты программ и мини-игр конкретного run-а |
+| `scenes/` | `MainMenu.tscn` (main_scene), `MainScene.tscn` (роутер), `Run1.tscn`/`Run2.tscn`; программы — в `scenes/run1/`, `scenes/run2/` |
+| `resources/{tasks,agents,implants,dialogues,fails}/` | Папки под `.tres`-контент — **пока пусты**, контент зашит в `const`-словари скриптов (см. правило #3) |
 | `addons/godot_mcp/` | Godot-плагин MCP Pro, включён в `project.godot` |
 
 ## Two-chat workflow
@@ -42,10 +44,26 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 Те же принципы что в Unity-прототипе, но с заменой механизмов под Godot 4.
 
 1. **Event-bus с дня 1 — через signals.** `GameEvents` — autoload-синглтон со списком `signal task_completed(...)` и т.п. Никаких прямых ссылок между несвязанными системами. Подписка — `GameEvents.task_completed.connect(_on_task_completed)`. Названия сигналов — past tense.
-2. **Сервисы = autoload-синглтоны, не ServiceLocator.** `Economy`, `Run`, `Save` — каждый отдельный autoload в `[autoload]`-секции `project.godot`. Из любой ноды — `Economy.add_money(50)`, `Save.load_game()`. У каждого сервиса обязателен метод `reset()` — для пересоздания state между ранами (без перегрузки autoload-инстанса). Это идиоматичный Godot-way; ServiceLocator-обёртка не нужна, она была лишним слоем из Unity-привычек.
-3. **Resource-driven контент.** Всё перечислимое (задачи, агенты, импланты, диалоги, fail'ы) — кастомный `Resource` (`class_name TaskRes extends Resource` и т.п.), хранится как `.tres` в `resources/`. Это аналог Unity ScriptableObject в Godot.
+2. **Сервисы = autoload-синглтоны, не ServiceLocator.** `Economy`, `RunService` (и будущий `Save`) — каждый отдельный autoload в `[autoload]`-секции `project.godot`. Из любой ноды — `Economy.add(50)`, `RunService.spend_energy(1)`. У каждого сервиса обязателен метод `reset()` — для пересоздания state между ранами (без перегрузки autoload-инстанса). Это идиоматичный Godot-way; ServiceLocator-обёртка не нужна, она была лишним слоем из Unity-привычек.
+3. **Resource-driven контент.** Всё перечислимое (задачи, агенты, импланты, диалоги, fail'ы) — кастомный `Resource` (`class_name TaskRes extends Resource` и т.п.), хранится как `.tres` в `resources/`. Это аналог Unity ScriptableObject в Godot. **Текущее состояние:** контент пока зашит как `const Array[Dictionary]` прямо в скриптах программ (`UPGRADES` в `ShopApp.gd`, `AGENTS` в `AgentShopApp.gd`, `OUTCOMES` в `CasinoApp.gd` и т.п.). `.tres`-миграция отложена до момента, когда понадобится Inspector-редактирование или баланс через keeper'а.
 4. **Save с версионированием.** Файл — `user://save.json`, формат — `Dictionary` через `JSON.stringify` + поле `save_version: int` + `migrate_if_needed()` switch по версии. Стоит 30 минут на старте, спасает первый playtest.
 5. **Имплант = swap дочерней `Sprite2D`-ноды**, НЕ AnimationTree/AnimatedSprite2D. Каждая часть тела — отдельная child-нода под `Player` со своим `texture`. На каждый имплант — отдельный `Texture2D` ссылкой в `ImplantRes`. Артист добавляет вариант независимо, не трогая остальные части.
+
+## Архитектура runtime (сцены и навигация)
+
+Поток сцен — три уровня; каждый загружает следующий через `change_scene_to_file` либо инстансит сцену внутрь host-ноды.
+
+1. **`MainMenu.tscn`** — стартовое меню (`run/main_scene` проекта). Кнопка «Начать» → грузит `MainScene.tscn`.
+2. **`MainScene.tscn` (`MainScene.gd`)** — роутер run-ов. Читает `RunService.current_day`: день 1 → `Run1.tscn`, день ≥ 2 → `Run2.tscn`.
+3. **`Run1.tscn` / `Run2.tscn` (`Run1.gd` / `Run2.gd`)** — root-контроллер игрового дня. Держит шапку (день/деньги/энергия), виджет целей, два вида комнаты (общий план ↔ крупный план монитора) и **program-host**.
+
+**Program-host паттерн.** Run-контроллер не знает о программах напрямую — он хранит `const SCENE_PATHS` (id → путь `.tscn`) и ноду `_program_host`. Метод `_open_program(id)` чистит host и инстансит туда сцену программы. Открытие — клик иконки на Desktop эмитит `GameEvents.program_open_requested.emit(id)`. Закрытие — программа эмитит `GameEvents.program_closed`, Run-контроллер ловит и грузит обратно Desktop.
+
+**WorkHub — вложенный host.** Программа `work` ведёт не на мини-игру, а на `WorkHub.tscn` — экран выбора работы, который сам хостит мини-игры (`WorkProgram`, `MailSortGame`, будущий `BugfixGame`) в собственной `GameHost`-ноде. Мини-игра завершается, инстансируя `WorkResult.tscn` и эмитя `GameEvents.work_day_finished`. WorkHub переподключает кнопку «Назад» мини-игры на возврат к карточкам выбора.
+
+**Run1 vs Run2.** `Run2.tscn`/`Run2.gd` — почти копия Run1 с расширенным рабочим столом (`Desktop2.tscn` — 6 иконок: 3 рабочие + 3 разблокируемые: Магазин/Казино/Агенты). Программы work/dating/mail переиспользуются из `scenes/run1/`. Дублирование run-сцен — осознанный компромисс (см. `done.md`, Slice B).
+
+**Жизненный цикл дня.** Действия (drop карточки, лайк, ответ, крутка) тратят энергию через `RunService.spend_energy()`. При энергии 0 (или кнопкой «Лечь спать» → `force_finish_day()`) — `day_finished` с `summary`-словарём, Run-контроллер показывает `DaySummary` поверх всего. «Начать следующий день» → `RunService.next_day()` → снова `MainScene.tscn`.
 
 ## Конвенции кода (GDScript)
 
@@ -74,7 +92,7 @@ Idle/tap-кликер тайкун с сатирой на эпоху AI-аген
 - ✅ **`.mcp.json`** в корне проекта с абсолютным путём к `build/index.js`. Коммитится в git (project scope).
 - ⚠️ **Editor vs Runtime tools.** В MCP Pro разделение: editor-tools работают всегда, runtime-tools (симуляция кликов, чтение state запущенной игры, скриншоты) требуют сначала вызова `play_scene`. Без `play_scene` — `runtime_*` всегда падают.
 - ⚠️ **Никогда не редактируй `project.godot` напрямую** через Write/Edit — Godot Editor перезаписывает файл при сохранении. Используй MCP `set_project_setting` или редактируй через UI Godot и пересохраняй.
-- ⚠️ **Autoload-секция содержит MCP-сервисы плагина** (`MCPScreenshot`, `MCPInputService`, `MCPGameInspector`) — это **не наши** autoload-ы, их зарегистрировал плагин при первом enable. Не удалять: без них не работают runtime-тулы (`get_game_screenshot`, `simulate_*`, `find_nodes_by_script`). Наши собственные autoload-ы — только `GameEvents` и `ServiceLocator`.
+- ⚠️ **Autoload-секция содержит MCP-сервисы плагина** (`MCPScreenshot`, `MCPInputService`, `MCPGameInspector`) — это **не наши** autoload-ы, их зарегистрировал плагин при первом enable. Не удалять: без них не работают runtime-тулы (`get_game_screenshot`, `simulate_*`, `find_nodes_by_script`). Наши собственные autoload-ы — `GameEvents`, `Economy`, `RunService`.
 - ⚠️ **Stale `node.exe`** — если MCP «Waiting for connection», в Task Manager убить все `node.exe` и перезапустить Claude Code.
 
 ### Первый запуск Godot
@@ -109,9 +127,9 @@ node C:/Users/stas1/Downloads/godot-mcp-pro-v1.13.0/server/build/cli.js script r
 
 ## Текущий статус
 
-- **Phase:** Slice 0 закрыт. Godot 4.6.2 открывает проект, MCP-плагин коннектится зелёным дотом, `MainMenu.tscn` (заглушка) запускается по F5 и печатает `[MainMenu] ready — Paradise 2033 boot OK`. Bootstrap-сцена и ServiceLocator-обёртка убраны — переход на чистый Godot-way (см. правило #2).
-- **Сцены:** только `scenes/MainMenu.tscn`. MainScene/EndScreen — Slice 1+.
-- **Сервисы:** `Economy`/`Run`/`Save` — ещё не написаны. Будут autoload-синглтонами с `reset()` на каждом. Slice 1.
-- **Сейв:** не реализован. Формат — `user://save.json`, версионирование с дня реализации.
+- **Phase:** Slice I закрыт, Slice J (Bug Fix Mini-game) — в `next.md`. Пройдены мастер-план A→F (полная idle-петля: Run 1/2, Магазин, Казино, Агенты, EventLog/DaySummary) и Work System Expansion G→I (WorkHub, WorkResult, Corporate Mail).
+- **Сцены:** `MainMenu` → `MainScene` (роутер) → `Run1`/`Run2`. Программы Run 1: `Desktop`, `WorkProgram`, `DatingProgram`, `MailProgram`, `DaySummary`. Run 2: `Desktop2`, `ShopApp`, `CasinoApp`, `AgentShopApp`, `WorkHub`, `MailSortGame`, `WorkResult`. (`Bootstrap.tscn` — мёртвый артефакт Slice 0, в графе сцен не участвует.)
+- **Autoload-сервисы:** `GameEvents` (event-bus), `Economy` (деньги), `RunService` (state дня: энергия, цели, апгрейды, агенты, матчи, симпатии, разблокировки). У каждого есть `reset()`.
+- **Сейв:** `Save` ещё не написан. План — `user://save.json`, `Dictionary` через `JSON.stringify` + `save_version` + `migrate_if_needed()`.
 - **Telemetry:** не реализована. План — CSV в `user://playtest_log.csv`, append-mode, формат как в Unity-версии.
-- **Git:** инициализирован, первый коммит — bootstrap.
+- **Git:** ветка `main`. Каждый слайс — отдельный коммит coder'а + коммит keeper'а с обновлением `done.md`/`next.md`.
