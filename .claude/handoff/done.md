@@ -1,5 +1,53 @@
 # История закрытых слайсов
 
+## Fix-слайс — Экономика и баланс мини-игр ✓
+
+**Коммит:** `4180614`
+**Ревью keeper'а:** ✓ принято 2026-05-20
+
+Закрыл 2 находки из ревью Slice J (блок ниже, «Ревью вскрыло 2 проблемы»). Хирургический слайс: 3 файла, без новых сцен/сигналов/ресурсов.
+
+**Вердикт:** Принят. Оба решения keeper'а реализованы дословно.
+- *Зачисление:* `BugfixGame._show_result()` и `MailSortGame._finish_game()` перед `work_day_finished.emit()` вызывают `Economy.add(_earned)` + `register_money_earned(_earned)`. Задвоения нет — проверил: централизованный обработчик не вводился, `Run1/Run2._on_work_day_finished` = `pass`, `WorkProgram` зачисляет live и не тронут.
+- *Баланс:* `_paid_closures_remaining = 3` — монотонный спуск 20$→14$→13$, прибыльность ошибок устранена, гринд бессмыслен.
+- Playtest 7/7 зелёных (рост `Economy.money`, цель «30$», DaySummary «Заработано: 38$» = 20+14+4), `get_editor_errors` чисто.
+
+**Мелочи (не блокируют):** `get_node_or_null("/root/Economy")` вместо прямого автолоада `Economy` (CLAUDE.md правило #2 рекомендует `Economy.add()` напрямую) — но совпадает со стилем `RunService.gd`, оставляем для консистентности. Guard `_earned != 0` перед `Economy.add()` избыточен (`add()` сам гасит 0) — безвреден.
+
+**Что изменено:**
+
+| Файл | Что |
+|---|---|
+| `scripts/run2/BugfixGame.gd` *(изменён)* | **Зачисление денег:** `_show_result()` перед `work_day_finished.emit()` вызывает `Economy.add(_earned)` (под guard'ом `_earned != 0`) и `RunService.register_money_earned(_earned)`. **Баланс каскада:** новое поле `_paid_closures_remaining: int = INITIAL_BUGS` (=3). В ветке правильного фикса +5$ платится только пока `_paid_closures_remaining > 0` (с декрементом); дальше — фидбэк «Баг закрыт. Этот — твой косяк, чинишь бесплатно.» (FEEDBACK_WARN), `_earned` не растёт. Ветка ошибки и flawless-бонус не тронуты. |
+| `scripts/run2/MailSortGame.gd` *(изменён)* | `_finish_game()` перед `work_day_finished.emit()` зачисляет `Economy.add(_earned)` + `RunService.register_money_earned(_earned)` — так же, как BugfixGame. |
+| `scenes/run2/WorkHub.tscn` *(изменён)* | Card_Bugfix RewardLabel «8–25$» → «8–20$» (новый реальный диапазон награды). |
+
+**Решения keeper'а, реализованные дословно:**
+- Зачисление — каждая игра сама (`Economy.add()` по образцу `WorkProgram`), без центрального обработчика в Run-контроллерах (иначе сортировка задвоилась бы).
+- За каскад не платим: +5$ только за первые 3 закрытия (= стартовые баги). `ERROR_PENALTY` остался 1.
+
+**Playtest через MCP (Run 2, день 2, всё зелёное):**
+1. Старт: `Economy.money = 0`, `money_earned_today = 0`. ✓
+2. Фиксы, идеальный прогон (0 ошибок): WorkResult «+20$», шапка `$0 → $20`, `money_earned_today = 20`. ✓
+3. Фиксы, прогон с 1 ошибкой: каскадный 4-й баг закрыт с фидбэком «чинишь бесплатно», `_earned` не вырос на нём. WorkResult «+14$» (15 − 1), «Сойдёт». Шапка `$20 → $34`, `money_earned_today = 34`. ✓ — баланс монотонный, гринд бессмыслен.
+4. Цель «Заработать 30$» — отмечена после Фиксов (доход от мини-игры засчитан в `register_money_earned`). ✓
+5. Почта, 1 письмо правильно + «Закончить»: WorkResult «+4$», шапка `$34 → $38`. ✓
+6. «Лечь спать» → DaySummary: «Заработано: 38$» (= 20 + 14 + 4 — доход Почты и Фиксов учтён), вердикт «День прожит без позора.». ✓
+7. `get_editor_errors` — чисто, оба скрипта компилируются.
+
+**Не playtest'ил, проверено по коду:**
+- *Сортировка без задвоения:* `WorkProgram` не тронут — зачисляет live через `_economy.add()` по категориям; централизованного обработчика `work_day_finished` нет (`Run1/Run2._on_work_day_finished` = `pass`), новых путей зачисления для сортировки не появилось → задвоиться нечему.
+- *Провал Фиксов → +0$, баланс не меняется:* `_fail_game()` ставит `_earned = 0`, `_show_result()` зачисляет под guard'ом `_earned != 0` → `Economy.add()` пропускается. Сам flow провала отыгран в playtest Slice J.
+
+**Компромиссы / known issues:**
+- Отрицательный итог Почты (много ошибок) → `Economy.add()` уменьшит баланс в минус. По `next.md` Out-of-scope money-floor не вводится — отдельный слайс.
+- `register_money_earned()` игнорирует отрицательное (`if amount > 0`) — отрицательный заработок Почты в `money_earned_today`/цель «30$»/DaySummary не зачтётся. Так и задумано keeper'ом.
+- Хардкод «−%d$» в `WorkResult.errors_label` не трогал (next.md Out-of-scope) — для Фиксов он верный (`ERROR_PENALTY = 1`), врёт только для Почты.
+
+**Следующий слайс (Slice K — Meeting Simulator):** см. план work-expansion.md раздел 9 и 4.3.
+
+---
+
 ## Slice J — Bug Fix Mini-game ✓
 
 **Коммит:** `9b05560`
