@@ -249,7 +249,7 @@ custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.467, 0.6, 0.533, 1)
 theme_override_font_sizes/font_size = 13
-text = "8–25$"
+text = "8–20$"
 
 [node name="CostLabel" type="Label" parent="ScrollContainer/CardsList/Card_Bugfix/Margin/Row/Info/StatsBox" unique_id=757143505]
 custom_minimum_size = Vector2(120, 0)

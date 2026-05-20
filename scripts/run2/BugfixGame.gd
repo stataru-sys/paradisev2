@@ -106,6 +106,7 @@ var _errors: int = 0
 var _energy_spent: int = 2  # списано при старте в WorkHub
 var _selected_bug_index: int = -1
 var _game_over: bool = false
+var _paid_closures_remaining: int = INITIAL_BUGS
 
 func _ready() -> void:
 	_back_button.pressed.connect(func() -> void: GameEvents.program_closed.emit())
@@ -179,10 +180,14 @@ func _on_fix_clicked(fix_text: String) -> void:
 
 	var bug: Dictionary = _active_bugs[_selected_bug_index]
 	if fix_text == String(bug["fix"]):
-		_earned += FIX_REWARD
 		_active_bugs.remove_at(_selected_bug_index)
+		if _paid_closures_remaining > 0:
+			_earned += FIX_REWARD
+			_paid_closures_remaining -= 1
+			_show_feedback("Баг закрыт. +%d$" % FIX_REWARD, FEEDBACK_GOOD)
+		else:
+			_show_feedback("Баг закрыт. Этот — твой косяк, чинишь бесплатно.", FEEDBACK_WARN)
 		_update_earned_label()
-		_show_feedback("Баг закрыт. +%d$" % FIX_REWARD, FEEDBACK_GOOD)
 		_rebuild_columns()
 		_update_progress()
 		if _active_bugs.is_empty():
@@ -241,6 +246,13 @@ func _show_result(comment_override: String) -> void:
 	result.anchor_right = 1
 	result.anchor_bottom = 1
 	result.setup(_earned, _errors, _energy_spent, comment_override)
+
+	var economy: Node = get_node_or_null("/root/Economy")
+	if economy != null and _earned != 0:
+		economy.add(_earned)
+	var run: Node = get_node_or_null("/root/RunService")
+	if run != null:
+		run.register_money_earned(_earned)
 	GameEvents.work_day_finished.emit(_earned)
 
 func _update_progress() -> void:

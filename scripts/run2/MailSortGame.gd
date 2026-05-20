@@ -313,6 +313,13 @@ func _finish_game() -> void:
 	result.anchor_right = 1
 	result.anchor_bottom = 1
 	result.setup(_earned, _errors, _energy_spent)
+
+	var economy: Node = get_node_or_null("/root/Economy")
+	if economy != null and _earned != 0:
+		economy.add(_earned)
+	var run: Node = get_node_or_null("/root/RunService")
+	if run != null:
+		run.register_money_earned(_earned)
 	GameEvents.work_day_finished.emit(_earned)
 
 func _set_buttons_enabled(p_enabled: bool) -> void:
